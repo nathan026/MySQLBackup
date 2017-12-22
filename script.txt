@@ -1,7 +1,7 @@
 
-Sub Hello
+Function Hello
 msgbox("hello")
-End Sub
+End Function
 
 Sub LoadListItems1
 	Dim colOptions
