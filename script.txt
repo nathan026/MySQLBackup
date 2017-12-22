@@ -1,5 +1,9 @@
 
 Sub LoadListItems
+msgbox("hello")
+End Sub
+
+Sub LoadListItems1
 	Dim colOptions
 	Dim objOption
 	
