@@ -1,4 +1,4 @@
-
+<script language="VBScript">
 Function Hello()
 msgbox("hello")
 End Function
@@ -54,3 +54,4 @@ Sub MoreTools
 	End If
 
 End Sub
+</script>
