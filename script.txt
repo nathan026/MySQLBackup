@@ -1,5 +1,5 @@
 
-Function Hello
+Function Hello()
 msgbox("hello")
 End Function
 
