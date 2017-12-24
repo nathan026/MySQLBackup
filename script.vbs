@@ -1,6 +1,6 @@
 <script language="VBScript">
 
-loaded = True
+Set loaded = True
 
 Function Hello()
 msgbox("hello")
