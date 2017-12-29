@@ -1,7 +1,8 @@
 loaded = true
-sub hello
-msgbox("hello!")
-end sub
+
+Sub Hello
+	MsgBox("Hello!")
+End Sub
 
 Sub LoadListItems1
 	Dim colOptions
