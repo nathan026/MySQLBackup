@@ -1,10 +1,7 @@
-<script language="VBScript">
-
-Set loaded = True
-
-Function Hello()
-msgbox("hello")
-End Function
+loaded = true
+sub hello
+msgbox("hello!")
+end sub
 
 Sub LoadListItems1
 	Dim colOptions
@@ -57,4 +54,3 @@ Sub MoreTools
 	End If
 
 End Sub
-</script>
