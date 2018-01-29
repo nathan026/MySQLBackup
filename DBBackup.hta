@@ -465,6 +465,7 @@ Sub Download
 	stream_obj.write http_obj.responseBody
 	stream_obj.savetofile "DBBackup.hta", 2
 	objShell.run "DBBackup.hta"
+	Self.Close()
 End Sub
 
 Function TextFromHTML( myURL )
