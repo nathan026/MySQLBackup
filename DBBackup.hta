@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.01.29" />
+  VERSION="2018.01.30" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -429,7 +429,29 @@ Sub Tools
 		End Select
 	End If
 
-	IF tools99.selectedIndex > 9 Then
+	IF tools99.selectedIndex = 10 Then  '' Cleanup Old Data
+		result = MsgBox ("This will DELETE dealcosts and campaigns which ended more than 1 month ago from database" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Cleanup Old Data")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 1 MONTH);" & _
+						"DELETE c, cp, cs, cpsa, cpg, cpp FROM campaign c " & _
+						"LEFT JOIN campaignplu cp ON c.id=cp.campaignid " & _
+						"LEFT JOIN campaignstore cs ON c.id=cs.campaignid " & _
+						"LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.CampaignID AND cp.plug_uid=cpsa.PLUG_UID " & _
+						"LEFT JOIN combopricegroup cpg ON c.id=cpg.CampaignID " & _
+						"LEFT JOIN combopriceplu cpp ON cpg.G_UID=cpp.GroupG_UID " & _
+						"WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH);"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("Complete")
+		Case vbNo
+		End Select
+	End If
+	
+	IF tools99.selectedIndex > 10 Then
 		call MoreTools
 	End If
 	call PleaseWaitShow()
@@ -594,6 +616,7 @@ function Repair(){
 				<option value="8">8. Delete Product by Master GUID</option>
 				<option value="9">9. Remove Orphaned Sales</option>
 				<option value="10">10. Delete All Products</option>
+				<option value="11">11. Cleanup Old Data</option>
 			</select>
 
 		<p>
