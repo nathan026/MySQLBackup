@@ -1,0 +1,629 @@
+<html>
+
+<title>MySQL Backup | GaP Solutions Pty. Ltd.</title>
+<head>
+<HTA:APPLICATION
+  ID="MySQLBackup"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  MAXIMIZEBUTTON="yes"
+  MINIMIZEBUTTON="yes"
+  WINDOWSTATE="window"
+  NAVIGATABLE="yes"
+  INNERBORDERS="no"
+  SCROLL="no"
+  APPLICATIONNAME="MySQL Backup"
+  SINGLEINSTANCE="no"
+  SYSMENU="yes"
+  SELECTION="no"
+  VERSION="2018.00.26" />
+
+
+<!--  https://github.com/nathan026/MySQLBackup/blob/master/version.txt -->
+<!--  https://drive.google.com/drive/folders/1ecctYjAjxjwJwYmYh4YI9GT-_Ir9SbL2 -->
+
+<!-- <script language="VBScript" src="https://raw.githubusercontent.com/nathan026/MySQLBackup/master/script.vbs?nonce=1"></script> -->
+<script type="text/vbscript" src="script.vbs"></script>
+
+<style>
+
+BODY {
+    background-color: #333333;
+	font-family: Verdana;
+	font-size: 15px;
+	color: cbcbcb;
+    margin: 0;
+	}
+
+a:visited {
+	color: Black;
+	text-decoration: none;
+	}
+
+h1, h2, h3, h4, h5, h6 {
+	margin-bottom: 0.5;
+	}
+
+div.Blanket_Div {
+	visibility:hidden;
+	Background:Black;
+	filter:alpha(opacity=80);
+	opacity:0.2;
+	z-index:9999;
+	height:100%;
+	width:100%;
+	position:absolute;
+	text-align:center;
+	line-height:600px;
+	}
+
+div.UpdateBar_Div {
+	visibility: hidden;
+	background: #ffcc66;
+	color: Black;
+	font-size: 20px;
+	top: 0px;
+	text-align: center;
+	position: absolute;
+	width: 100%;
+	height: 30px;
+}
+
+div.Header_Div {
+	height:10%;
+	background-color:#329f50;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	color: White;
+	}
+
+div.Footer_Div {
+	background-color:#1a1a1a;
+	color:#9f9f9f;
+	bottom:0px;
+	height:8%;
+	left:0px;
+	position:absolute;
+	text-align:left;
+	width:100%;
+	}
+	
+div.Version_Div {
+	background-color:#1a1a1a;
+	color:#9f9f9f;
+	bottom:0px;
+	height:8%;
+	right:0px;
+	position:absolute;
+	text-align:right;
+	width:50%;
+	}
+	
+</style>
+ 
+<script language="VBScript">
+window.resizeTo 500,550
+window.moveTo (screen.Width - 500)/2, (screen.Height - 550)/2
+
+
+On Error Resume Next
+Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj
+
+Set loaded = False
+
+Set objWMIService 		= GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\.\root\cimv2")
+Set fso 				= CreateObject("Scripting.FileSystemObject")
+Set objShell 			= CreateObject("WScript.Shell")
+Set UAC 				= CreateObject("Shell.Application")
+Set tfolder 			= fso.GetSpecialFolder(TemporaryFolder)
+set http_obj 			= CreateObject("Microsoft.XMLHTTP")
+set stream_obj 			= CreateObject("ADODB.Stream")
+
+strSQLUser = tfolder & "\sqluser"
+strTools   = tfolder & "\sqlTools"
+strSQLFile = tfolder & "\mysqldump.sql"
+strBackup  = tfolder & "\MySQL_Backup"
+strAppVer  = MySQLBackup.Version
+
+
+Const TemporaryFolder = 2
+
+Sub Window_OnLoad
+	AppVersion.InnerHTML = strAppVer
+
+	Set colIP = objWMIService.ExecQuery ("Select * From Win32_NetworkAdapterConfiguration Where IPEnabled = True")
+	Set colCOMPNAME = objWMIService.ExecQuery( "Select * from Win32_ComputerSystem" )
+
+	For each objCOMPNAME in colCOMPNAME
+		CompName.innerHTML = objCOMPNAME.Name
+	next
+
+	For each objitem in colIP
+		IP.innerHTML = Join(objitem.IPAddress, " . . . . . . ")
+		Exit For
+	Next
+
+	If fso.FileExists("C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
+		strMySQL      = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe"""
+		strMySQLadmin = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
+		strMySQLdump  = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
+		strMySQLcheck = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+
+	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
+		strMySQL      = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
+		strMySQLadmin = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
+		strMySQLdump  = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
+		strMySQLcheck = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+	Else
+		MsgBox("MySQL could not be found")
+	End If
+
+	''objShell.Run "cmd /K echo " & strMySQL & " -u root -p -h " & Target_IP.Value & " deliqszz " & " ^< " & chr(34) & "C:\Users\Nathan\Desktop\MySQL Backup\mysqldump.sql" & chr(34), 1, True
+	
+	setTimeout "CheckUpdate", 100, "VBScript"
+	setTimeout "CheckLoaded", 1000, "VBScript"
+
+End Sub
+
+Sub CheckLoaded
+    If loaded Then
+        OnlineScript.innerHTML = "S"
+    Else
+        OnlineScript.innerHTML = "X"
+    End If
+End Sub
+
+Sub start 
+ 	call PleaseWaitHide()
+
+	Set objFile = fso.CreateTextFile(strSQLUser)
+		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
+				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
+				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
+				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; " & _
+				  "DROP DATABASE IF EXISTS " & Target_DB.Value & "; CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
+	objFile.WriteLine strLine
+	objFile.Close
+
+    If mode(0).Checked Then ''BACKUP
+		If Not fso.FolderExists(strBackup) Then
+			fso.CreateFolder strBackup
+		End If
+
+		strBackupName = InputBox("Save backup as...", "Save As", "MySQL_dump" & replace(date,"/",""))
+		IF Not strBackupName ="" Then
+
+			objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -n -r """ & strBackup & "\" & strBackupName & ".sql" & "", 0, True
+			MsgBox("Backup Complete!")
+			UAC.Open strBackup
+		End If
+
+    End If
+
+	If mode(1).Checked Then ''RESTORE
+		If fLocation.Value ="" Then
+			MsgBox("No File Selected!")
+		Else
+			
+			objShell.Run "cmd /C """ & strMySQL & " -u root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
+			objShell.Run "cmd /C """ & strMySQL & " -u gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & chr(34) & fLocation.Value & chr(34), 0, True
+			MsgBox("Restore Complete!")
+		End If
+	End If
+
+	If mode(2).Checked Then ''MIGRATE
+		objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -r " & strSQLFile, 0, True
+		objShell.Run "cmd /C """ & strMySQL & " -u root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
+		objShell.Run "cmd /C """ & strMySQL & " -u gap -pgap -h " & Target_IP.Value & " " & Target_DB.Value & " < " & chr(34) & strSQLFile & chr(34), 0, True
+		MsgBox("Migration Complete!")
+    End If
+
+	If mode(3).Checked Then ''CHECK + TOOLS
+		call Tools()
+    End If
+
+	call PleaseWaitShow()
+End Sub
+
+
+''TOOLS
+Sub Tools
+	call PleaseWaitHide()
+
+	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
+		objShell.Run "cmd /C " & strMySQLadmin & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " flush-hosts ", 0, True
+		objShell.Run "cmd /C " & strMySQLcheck & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
+		objShell.Run "notepad.exe %temp%\MySQLCheck.log", 1, False
+		MsgBox("Check and Repair Complete!")
+	End If
+
+	IF tools99.selectedIndex = 1 Then  '' Create GaP User
+		Set objFile2 = fso.CreateTextFile(strTools)
+		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; " & _
+				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
+				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
+				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
+		objFile2.WriteLine strLine
+		objFile2.Close
+		result = MsgBox ("This will create the gap users in MySQL" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Create gap users")
+
+		Select Case result
+		Case vbYes
+			call PleaseWaitHide()
+			objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & strTools, 0, True
+			MsgBox("gap database users created!")
+			call PleaseWaitShow()
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 2 Then  '' Convert to InnoDB
+		result = MsgBox ("This will convert all table engines to InnoDB" & vbCrLf & "InnoDB is the recommended table engine for deliqs" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Convert to InnoDB")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "SELECT CONCAT('ALTER TABLE ',TABLE_NAME,' ENGINE=InnoDB;') FROM INFORMATION_SCHEMA.TABLES WHERE ENGINE='MyISAM' AND table_schema = '" & Host_DB.Value & "' ;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >" & strTools & ".sql", 0, True
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
+			objShell.Run "notepad.exe " & strTools & ".sql", 1, False
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 3 Then  '' Update Current Cost
+		result = MsgBox ("This will update the current cost for all products"  & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Update Current Cost")
+
+			Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "UPDATE PLU LEFT JOIN ( SELECT dc.* FROM DealCost dc INNER JOIN ( SELECT bdc.PLUG_UID, MIN(bdc.Cost / POWER(10, bdc.CostDecimals)) AS Cost " & _
+					  "FROM DealCost AS bdc WHERE bdc.Start<=NOW() AND bdc.End>NOW() GROUP BY bdc.PLUG_UID ) AS b ON b.Cost=(dc.Cost / POWER(10, dc.CostDecimals)) " & _
+					  "AND b.PLUG_UID=dc.PLUG_UID AND dc.Start<=NOW() AND dc.End>=NOW() ) AS dc ON PLU.G_UID=dc.PLUG_UID LEFT JOIN " & _
+					  "( SELECT c.Name, c.Description, c.EndDate, cp.PLUG_UID, cp.NewCost AS Cost, cp.NewCostDecimals AS CostDecimals FROM " & _
+					  "( SELECT cp.PLUG_UID, MIN(cp.NewPrice) AS NewPrice FROM Campaign c INNER JOIN CampaignStore cs ON c.ID=cs.CampaignID AND " & _
+					  "cs.StoreID=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0) INNER JOIN CampaignPLU cp " & _
+					  "ON c.ID=cp.CampaignID LEFT JOIN PLU p ON p.G_UID=cp.PLUG_UID AND p.StoreID=cs.StoreID WHERE c.CampaignType=1 AND c.Active=1 " & _
+					  "AND c.Deleted=0 AND c.StartDate<=NOW() AND c.EndDate>=NOW() GROUP BY cp.PLUG_UID) AS mcp INNER JOIN CampaignPLU cp ON " & _
+					  "mcp.PLUG_UID=cp.PLUG_UID AND cp.NewPrice=mcp.NewPrice INNER JOIN Campaign c ON c.ID=cp.CampaignID GROUP BY cp.PLUG_UID HAVING cp.NewCost>0) " & _
+					  "AS c ON c.PLUG_UID=PLU.G_UID SET PLU.CurrentCost = COALESCE(dc.Cost, c.Cost, 0), PLU.CurrentCostDecimals = " & _
+					  "COALESCE(dc.CostDecimals, c.CostDecimals, PLU.CostDecimals, 3), PLU.CurrentCostDesc = COALESCE(dc.Description, c.Description, 'Normal'), " & _
+					  "PLU.CurrentCostEnd = COALESCE(dc.End, c.EndDate), PLU.DealCostIdentifier = dc.Identifier, PLU.CurrentCostUpdated = NOW(), " & _
+					  "PLU.LastUpdatedByUser = 'support@gapsolutions.com.au' WHERE PLU.StoreID=IFNULL((select value from settings where Keyname='StoreID' and " & _
+					  "Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0));"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("Current Costs have been updated!")
+		Case vbNo
+		End Select
+	End If
+	
+''	IF tools99.selectedIndex = 3 Then  '' Delete Sales
+''		strDateFrom = InputBox("Enter a date to delete the sales from (YYYY-MM-DD):")
+''		strDateTo = InputBox("Enter a date to delete the sales upto (YYYY-MM-DD):")
+''		result = MsgBox ("Delete all sales between " & strDateFrom & " and " & strDateTo & vbCrLf & "Dates are inclusive!" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Delete Sales Between")
+''
+''		Select Case result
+''		Case vbYes
+''			MsgBox("Option not yet implemented")
+''		Case vbNo
+''		End Select
+''	End If
+
+	IF tools99.selectedIndex = 4 Then  '' Reset Database
+		result = MsgBox ("This will TRUNCATE all* tables in the database" & vbCrLf & "Settings and sales related tables will be kept" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Reset Database")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings " & _
+					" WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "mastercheck", 0, True
+
+			Set objMaster = fso.OpenTextFile (strTools & "mastercheck", 1)
+			Do Until objMaster.AtEndOfStream
+			strMaster = objMaster.ReadLine
+			Loop
+
+			IF (strMaster="True") THEN
+				MsgBox("This database is a Master. Cannot reset database.")
+			ELSE
+				Set objFile2 = fso.CreateTextFile(strTools)
+				strLine = "DELETE FROM " & Host_DB.Value & ".checkoutsettings WHERE section='LastUpdate';" & _
+						"SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
+						Host_DB.Value & _
+						"' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
+				objFile2.WriteLine strLine
+				objFile2.Close
+				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
+				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & "refresh", 0, True
+				MsgBox("Reset Database Complete")
+			END IF
+
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 5 Then  '' Unlock Operators
+		result = MsgBox ("This will log out all operators from the server and unlock locked operators"  & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Unlock Operators")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "UPDATE operator SET locked=0, loggedin=0;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("All Operators Unlocked")
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 6 Then  '' Send to Foreign Scales
+		result = MsgBox ("This will flag all products with 'Export to Foreign Scale' to be sent." & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Send to Foreign Scales")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "INSERT INTO ModifyPlu ( PLU, PLUG_UID, ModifyOn, ModifiedUtc, ModifyWhat, NewPrice, NewCost ) " & _
+					" SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu " & _
+					" LEFT JOIN campaignplu ON plu.plu=campaignplu.plu " & _
+					" WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND " & _ 
+					" plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("Products flaged to send")
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 7 Then  '' Delete Product by Master GUID
+	strMasterPluGUID = InputBox("Paste MasterPLUG_UID line to delete product")
+
+		IF Not strMasterPluGUID="" Then
+			result = MsgBox ("This will delete any products which are linked to this Master GUID" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Delete Product by Master GUID")
+
+			Select Case result
+			Case vbYes
+				Set objFile2 = fso.CreateTextFile(strTools)
+				strLine = strMasterPluGUID & _
+							"DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
+				objFile2.WriteLine strLine
+				objFile2.Close
+				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				MsgBox("Complete")
+			Case vbNo
+			End Select
+		End If
+	End If
+
+	IF tools99.selectedIndex = 8 Then  '' Remove Orphaned Sales
+		result = MsgBox ("This will remove all open sales from all operators" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Remove Orphaned Sales")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16') AND DATE(createdlocal)<>DATE(NOW());" & _
+						"DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						"DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						"DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						"DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						"DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("Complete")
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex = 9 Then  '' Delete All Products
+		result = MsgBox ("This will TRUNCATE 'plu', 'plulocaltion', 'nutrifacts' from database" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Delete All Products")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"TRUNCATE TABLE plu;" & _
+						"TRUNCATE TABLE plulocation;" & _
+						"TRUNCATE TABLE nutrifacts"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			MsgBox("Complete")
+		Case vbNo
+		End Select
+	End If
+
+	IF tools99.selectedIndex > 9 Then
+		call MoreTools
+	End If
+	call PleaseWaitShow()
+End Sub
+
+
+Sub CheckUpdate( )
+	Dim intAnswer, intButtons, lenLatestVer, strCurrentVer, strLatestver, strPrompt, strTitle, wshShell
+
+	call CheckingShow()
+		intButtons = vbYesNoCancel + vbApplicationModal + vbInformation
+		Set wshShell  = CreateObject( "WScript.Shell" )
+		strCurrentVer = Split( MySQLBackup.Version )(0)
+
+		'' Clear the IE cache
+		'' wshShell.Run "RUNDll32.EXE InetCpl.cpl,ClearMyTracksByProcess 264", 7, True
+		strLatestVer  = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ),10)
+
+		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
+				call UpdateNotification()
+		End If
+		Set wshShell = Nothing
+	call CheckingHide()
+
+End Sub
+
+Sub Download
+	http_obj.open "GET", "https://drive.google.com/open?id=1aRjvBpTsBuo3GNRCJpA20wzp99xln8cA&noonce=" & timer, False
+	http_obj.send
+ 
+	stream_obj.type = 1
+	stream_obj.open
+	stream_obj.write http_obj.responseBody
+	stream_obj.savetofile "update.hta", 2
+End Sub
+
+Function TextFromHTML( myURL )
+    Dim objHTTP
+    TextFromHTML = ""
+    On Error Resume Next
+    Set objHTTP = CreateObject( "WinHttp.WinHttpRequest.5.1" )
+    objHTTP.Open "GET", myURL
+    objHTTP.Send
+    If Err Then gvbConnected = False
+    ' Check if the result was valid, and if so return the result
+    If objHTTP.Status = 200 Then TextFromHTML = objHTTP.ResponseText
+    Set objHTTP = Nothing
+    On Error Goto 0
+End Function
+
+</script>
+ <script language="javascript">
+
+function UpdateNotification() { UpdateBar_Div.style.visibility="visible"; }
+function UpdateNotificationHidden() { UpdateBar_Div.style.visibility="hidden"; }
+
+function CheckingHide() { Checking.style.visibility="hidden"; }
+function CheckingShow() { Checking.style.visibility="visible"; }
+
+function PleaseWaitHide() {	Blanket_Div.style.visibility="visible"; }
+function PleaseWaitShow() {	Blanket_Div.style.visibility="hidden"; }
+
+function Backup(){
+	Header_Div.style.background="#329f50";
+	document.getElementById("start").style.background="#329f50";
+	Host_Div.style.visibility="visible";
+	Target_Div.style.visibility="hidden";
+	Location_Div.style.visibility="hidden";
+	Toolslist_Div.style.visibility="hidden";
+}
+function Restore() {
+	Header_Div.style.background="#ecae01";
+	document.getElementById("start").style.background="#ecae01";
+	Host_Div.style.visibility="hidden";
+	Target_Div.style.visibility="visible";
+	Location_Div.style.visibility="visible";
+	Toolslist_Div.style.visibility="hidden";
+	
+}
+function Migrate() {
+	Header_Div.style.background="#95519e";
+	document.getElementById("start").style.background="#95519e";
+	Host_Div.style.visibility="visible";
+	Target_Div.style.visibility="visible";
+	Location_Div.style.visibility="hidden";
+	Toolslist_Div.style.visibility="hidden";
+}
+function Repair(){
+	Header_Div.style.background="#009edf";
+	document.getElementById("start").style.background="#009edf";
+	Host_Div.style.visibility="visible";
+	Target_Div.style.visibility="hidden";
+	Location_Div.style.visibility="hidden";
+	Toolslist_Div.style.visibility="visible";
+}
+</script>
+</head>
+<body align="center">
+
+	<div id="Blanket_Div" class="Blanket_Div">
+		<span style="font-size:50px;display: inline-block; vertical-align: middle;">Please Wait...</span>
+	</div>
+
+	<div id="UpdateBar_Div" class="UpdateBar_Div" onClick="Download">
+		<!-- <a id="Update" href="https://drive.google.com/drive/folders/1ecctYjAjxjwJwYmYh4YI9GT-_Ir9SbL2">Click here to get the latest version!</a> -->
+		<a id="Update" href="https://drive.google.com/drive/folders/1ecctYjAjxjwJwYmYh4YI9GT-_Ir9SbL2">Click here to get the latest version!</a>
+		<a id="HideUpdate" style="font-size:12px;" onClick="UpdateNotificationHidden()">(Hide this)</a>
+	</div>
+
+	<div id="Header_Div" class="Header_Div">	
+		<span id="CompName"></span>
+		<br>
+		<span id="IP"></span>
+		<br>
+		<span id="OnlineScript" style="font-size:11px;"></span>
+	</div>
+	<p>
+
+	<div id="Main_Div" align="center" style="width:100%; height:85%;">
+		<input type="Radio" checked="true" id="backup" name="mode" Value="1" onClick="BackUp()" />
+			<label for="backup">Backup</label>
+		<input type="Radio" id="restore" name="Mode" Value="2" onClick="Restore()">
+			<label for="restore">Restore</label>
+		<input type="Radio" id="migrate" name="Mode" Value="3" onClick="Migrate()">
+			<label for="migrate">Migrate</label>
+		<input type="Radio" id="repair" name="Mode" Value="4" onClick="Repair()">
+			<label for="repair">Check & Repair + Tools</label>
+		<P>
+
+		<div id="Host_Div" style="visibility: visible; width:400px">
+			<h2 align="Left">Host</h2>
+			IP Address: <input type="text" name="Host_IP" value="localhost" size="10">
+			Database: <input type="text" name="Host_DB" value="deliqs" size="10">
+		</div>
+		<br>
+
+		<div id="Target_Div" style="visibility: hidden; width:400px">
+			<h2 align="Left">Target</h2>
+			IP Address: <input type="text" name="Target_IP" value="localhost" size="10">
+			Database: <input type="text" name="Target_DB" value="deliqs" size="10">
+		</div>
+		<br>
+
+		<div id="Location_Div" style="visibility: hidden; width:400px">
+			<h2 align="Left">File to restore</h2>
+			<input type="file" name="fLocation" accept=".sql">
+		</div>
+		<br>
+
+		<div id="Toolslist_Div" style="visibility: hidden; width:400px">
+			<h2 align="Left">Tools</h2>
+
+			<select id="ToolList" name="tools99">
+				<option value="1">1. Check & Repair</option>
+				<option value="2">2. Create GaP Users</option>
+				<option value="3">3. Convert To InnoDB</option>
+				<option value="4">4. Update Product Current Cost</option>
+				<option value="5">5. Reset Lane Database</option>
+				<option value="6">6. Unlock All Operators</option>
+				<option value="7">7. Send External Scale Products</option>
+				<option value="8">8. Delete Product by Master GUID</option>
+				<option value="9">9. Remove Orphaned Sales</option>
+				<option value="10">10. Delete All Products</option>
+			</select>
+
+		<p>
+		</div>
+		<p>
+		<input type="button" id="start" name="Start" value="  Start  " style="font-size:20px; border:none; color:white; background-color:#329f50;" onClick="Start()">
+	</div>
+	
+	<div id="Footer_Div"  class="Footer_Div">
+		<a style="font-size:18px;"> GaP Solutions Pty. Ltd.</a>
+		<br>
+		<a style="font-size:11px; color:#9f9f9f;">www.gapsolutions.com.au</a>
+	</div>
+
+	<div id="Version_Div" class="Version_Div">
+		<a id="Help" style="font-size:18px; color:orange;" href="https://docs.google.com/document/d/18HCIYXgQLZNelujriRDQbpEuopKLgJC44QNgoiwbR8M/edit?usp=sharing">Help!</a>
+		<br>
+		<a id="Checking" style="font-size:11px; text-align:right; color:#0099ff">checking version... </a><a style="font-size:11px;" onClick="CheckUpdate">Ver: <SPAN ID="AppVersion" style="font-size:11px;">0</SPAN></a>
+	</div>
+
+ </body>
+ </html>
