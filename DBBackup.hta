@@ -17,15 +17,12 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.00.26" />
+  VERSION="2018.01.29" />
 
 
+<!--  https://github.com/nathan026/MySQLBackup -->
 <!--  https://github.com/nathan026/MySQLBackup/blob/master/version.txt -->
 <!--  https://drive.google.com/drive/folders/1ecctYjAjxjwJwYmYh4YI9GT-_Ir9SbL2 -->
-
-<!-- <script language="VBScript" src="https://raw.githubusercontent.com/nathan026/MySQLBackup/master/script.vbs?nonce=1"></script> -->
-<script type="text/vbscript" src="script.vbs"></script>
-
 <style>
 
 BODY {
@@ -161,16 +158,7 @@ Sub Window_OnLoad
 	''objShell.Run "cmd /K echo " & strMySQL & " -u root -p -h " & Target_IP.Value & " deliqszz " & " ^< " & chr(34) & "C:\Users\Nathan\Desktop\MySQL Backup\mysqldump.sql" & chr(34), 1, True
 	
 	setTimeout "CheckUpdate", 100, "VBScript"
-	setTimeout "CheckLoaded", 1000, "VBScript"
 
-End Sub
-
-Sub CheckLoaded
-    If loaded Then
-        OnlineScript.innerHTML = "S"
-    Else
-        OnlineScript.innerHTML = "X"
-    End If
 End Sub
 
 Sub start 
@@ -469,13 +457,14 @@ Sub CheckUpdate( )
 End Sub
 
 Sub Download
-	http_obj.open "GET", "https://drive.google.com/open?id=1aRjvBpTsBuo3GNRCJpA20wzp99xln8cA&noonce=" & timer, False
+	http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
 	http_obj.send
  
 	stream_obj.type = 1
 	stream_obj.open
 	stream_obj.write http_obj.responseBody
-	stream_obj.savetofile "update.hta", 2
+	stream_obj.savetofile "DBBackup.hta", 2
+	objShell.run "DBBackup.hta"
 End Sub
 
 Function TextFromHTML( myURL )
