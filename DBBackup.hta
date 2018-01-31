@@ -104,9 +104,7 @@ window.moveTo (screen.Width - 500)/2, ((screen.Height - 550)/2)-20
 
 
 On Error Resume Next
-Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj
-
-Set loaded = False
+Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj, objShell
 
 Set objWMIService 		= GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\.\root\cimv2")
 Set fso 				= CreateObject("Scripting.FileSystemObject")
@@ -155,13 +153,11 @@ Sub Window_OnLoad
 		MsgBox("MySQL could not be found")
 	End If
 
-	''objShell.Run "cmd /K echo " & strMySQL & " -u root -p -h " & Target_IP.Value & " deliqszz " & " ^< " & chr(34) & "C:\Users\Nathan\Desktop\MySQL Backup\mysqldump.sql" & chr(34), 1, True
-	
 	setTimeout "CheckUpdate", 100, "VBScript"
 
 End Sub
 
-Sub start 
+Sub start
  	call PleaseWaitHide()
 
 	Set objFile = fso.CreateTextFile(strSQLUser)
@@ -455,44 +451,39 @@ Sub Tools
 		End Select
 	End If
 	
-	IF tools99.selectedIndex > 10 Then
-		call MoreTools
+	IF tools99.selectedIndex = 11 Then  '' Cleanup Old Data
+		MsgBox ("TEST")
 	End If
+	
 	call PleaseWaitShow()
 End Sub
 
 
 Sub CheckUpdate( )
-	Dim intAnswer, intButtons, lenLatestVer, strCurrentVer, strLatestver, strPrompt, strTitle, wshShell
+	Dim lenLatestVer, strCurrentVer, strLatestver
 
 	call CheckingShow()
-		intButtons = vbYesNoCancel + vbApplicationModal + vbInformation
-		Set wshShell  = CreateObject( "WScript.Shell" )
 		strCurrentVer = Split( MySQLBackup.Version )(0)
-
-		'' Clear the IE cache
-		'' wshShell.Run "RUNDll32.EXE InetCpl.cpl,ClearMyTracksByProcess 264", 7, True
 		strLatestVer  = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ),10)
 
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
 				call UpdateNotification()
 		End If
-		Set wshShell = Nothing
-	call CheckingHide()
 
+	call CheckingHide()
 End Sub
 
 Sub Download
 	call PleaseWaitHide()
-	http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
-	http_obj.send
- 
-	stream_obj.type = 1
-	stream_obj.open
-	stream_obj.write http_obj.responseBody
-	stream_obj.savetofile "DBBackup.hta", 2
-	objShell.run "DBBackup.hta"
-	Self.Close()
+		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
+		http_obj.send
+
+		stream_obj.type = 1
+		stream_obj.open
+		stream_obj.write http_obj.responseBody
+		stream_obj.savetofile "DBBackup.hta", 2
+		objShell.run "DBBackup.hta"
+		Self.Close()
 	call PleaseWaitShow()
 End Sub
 
@@ -623,6 +614,8 @@ function Repair(){
 				<option value="9">9. Remove Orphaned Sales</option>
 				<option value="10">10. Delete All Products</option>
 				<option value="11">11. Cleanup Old Data</option>
+				<option value="12">12. Test</option>
+				
 			</select>
 
 		<p>
