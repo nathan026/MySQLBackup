@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.02.01" />
+  VERSION="2018.02.09" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -431,7 +431,8 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 1 MONTH);" & _
+			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY);" & _
+						"UPDATE dealcost SET updated=NOW();" & _
 						"DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL;" & _
 						"DELETE c, cp, cs, cpg, cpp FROM campaign c " & _
 							"LEFT JOIN campaignplu cp ON c.id=cp.campaignid " & _
