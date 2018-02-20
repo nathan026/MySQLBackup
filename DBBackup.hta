@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.02.09" />
+  VERSION="2018.02.20" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -154,12 +154,40 @@ Sub Window_OnLoad
 	End If
 
 	setTimeout "CheckUpdate", 100, "VBScript"
+	call CheckMySQL1()
+End Sub
 
+Sub CheckMySQL1
+			Dim DNSResult
+			DB1Check.innerhtml = "--"
+			DB1Check.style.color = "Orange"
+			DNSResult = objShell.run (strMySQL & " -u gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
+			IF DNSResult = 0 Then
+				DB1Check.innerhtml = "OK"
+				DB1Check.style.color = "Green"
+			Else
+				DB1Check.innerhtml = "??"
+				DB1Check.style.color = "Orange"
+			End If
+End Sub
+
+Sub CheckMySQL2
+			Dim DNSResult
+			DB2Check.innerhtml = "--"
+			DB2Check.style.color = "Orange"
+			DNSResult = objShell.run (strMySQL & " -u gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
+			IF DNSResult = 0 Then
+				DB2Check.innerhtml = "OK"
+				DB2Check.style.color = "Green"
+			Else
+				DB2Check.innerhtml = "??"
+				DB2Check.style.color = "Orange"
+			End If
 End Sub
 
 Sub start
- 	call PleaseWaitHide()
-
+	Blanket_Div.style.visibility="visible"
+	
 	Set objFile = fso.CreateTextFile(strSQLUser)
 		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
 				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
@@ -176,7 +204,6 @@ Sub start
 
 		strBackupName = InputBox("Save backup as...", "Save As", "MySQL_dump" & replace(date,"/",""))
 		IF Not strBackupName ="" Then
-
 			objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -n -r """ & strBackup & "\" & strBackupName & ".sql" & "", 0, True
 			MsgBox("Backup Complete!")
 			UAC.Open strBackup
@@ -188,7 +215,6 @@ Sub start
 		If fLocation.Value ="" Then
 			MsgBox("No File Selected!")
 		Else
-			
 			objShell.Run "cmd /C """ & strMySQL & " -u root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
 			objShell.Run "cmd /C """ & strMySQL & " -u gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & chr(34) & fLocation.Value & chr(34), 0, True
 			MsgBox("Restore Complete!")
@@ -206,13 +232,13 @@ Sub start
 		call Tools()
     End If
 
-	call PleaseWaitShow()
+	Blanket_Div.style.visibility="Hidden"
 End Sub
 
 
 ''TOOLS
 Sub Tools
-	call PleaseWaitHide()
+	Blanket_Div.style.visibility="visible"
 
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
 		objShell.Run "cmd /C " & strMySQLadmin & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " flush-hosts ", 0, True
@@ -222,21 +248,20 @@ Sub Tools
 	End If
 
 	IF tools99.selectedIndex = 1 Then  '' Create GaP User
-		Set objFile2 = fso.CreateTextFile(strTools)
-		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; " & _
-				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
-				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
-				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
-		objFile2.WriteLine strLine
-		objFile2.Close
 		result = MsgBox ("This will create the gap users in MySQL" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Create gap users")
 
 		Select Case result
 		Case vbYes
-			call PleaseWaitHide()
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; " & _
+					  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
+					  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
+					  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			
 			objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & strTools, 0, True
 			MsgBox("gap database users created!")
-			call PleaseWaitShow()
 		Case vbNo
 		End Select
 	End If
@@ -261,7 +286,7 @@ Sub Tools
 	IF tools99.selectedIndex = 3 Then  '' Update Current Cost
 		result = MsgBox ("This will update the current cost for all products"  & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Update Current Cost")
 
-			Select Case result
+		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = "UPDATE PLU LEFT JOIN ( SELECT dc.* FROM DealCost dc INNER JOIN ( SELECT bdc.PLUG_UID, MIN(bdc.Cost / POWER(10, bdc.CostDecimals)) AS Cost " & _
@@ -305,7 +330,7 @@ Sub Tools
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings " & _
-					" WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
+					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "mastercheck", 0, True
@@ -320,9 +345,9 @@ Sub Tools
 			ELSE
 				Set objFile2 = fso.CreateTextFile(strTools)
 				strLine = "DELETE FROM " & Host_DB.Value & ".checkoutsettings WHERE section='LastUpdate';" & _
-						"SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
-						Host_DB.Value & _
-						"' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
+						  "SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
+						  Host_DB.Value & _
+						  "' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
 				objFile2.WriteLine strLine
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
@@ -356,10 +381,10 @@ Sub Tools
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = "INSERT INTO ModifyPlu ( PLU, PLUG_UID, ModifyOn, ModifiedUtc, ModifyWhat, NewPrice, NewCost ) " & _
-					" SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu " & _
-					" LEFT JOIN campaignplu ON plu.plu=campaignplu.plu " & _
-					" WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND " & _ 
-					" plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
+					  " SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu " & _
+					  " LEFT JOIN campaignplu ON plu.plu=campaignplu.plu " & _
+					  " WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND " & _ 
+					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -378,7 +403,7 @@ Sub Tools
 			Case vbYes
 				Set objFile2 = fso.CreateTextFile(strTools)
 				strLine = strMasterPluGUID & _
-							"DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
+						  "DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
 				objFile2.WriteLine strLine
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -452,18 +477,17 @@ Sub Tools
 		End Select
 	End If
 	
-	IF tools99.selectedIndex = 11 Then  '' Cleanup Old Data
-		MsgBox ("TEST")
+	IF tools99.selectedIndex = 11 Then  '' Test
+
 	End If
 	
-	call PleaseWaitShow()
+	Blanket_Div.style.visibility="Hidden"
 End Sub
-
 
 Sub CheckUpdate( )
 	Dim lenLatestVer, strCurrentVer, strLatestver
 
-	call CheckingShow()
+	Checking.style.visibility="visible"
 		strCurrentVer = Split( MySQLBackup.Version )(0)
 		strLatestVer  = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ),10)
 
@@ -471,11 +495,11 @@ Sub CheckUpdate( )
 				call UpdateNotification()
 		End If
 
-	call CheckingHide()
+	Checking.style.visibility="hidden"
 End Sub
 
 Sub Download
-	call PleaseWaitHide()
+	Blanket_Div.style.visibility="visible"
 		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
 		http_obj.send
 
@@ -485,7 +509,7 @@ Sub Download
 		stream_obj.savetofile "DBBackup.hta", 2
 		objShell.run "DBBackup.hta"
 		Self.Close()
-	call PleaseWaitShow()
+	Blanket_Div.style.visibility="Hidden"
 End Sub
 
 Function TextFromHTML( myURL )
@@ -507,12 +531,6 @@ End Function
 
 function UpdateNotification() { UpdateBar_Div.style.visibility="visible"; }
 function UpdateNotificationHidden() { UpdateBar_Div.style.visibility="hidden"; }
-
-function CheckingHide() { Checking.style.visibility="hidden"; }
-function CheckingShow() { Checking.style.visibility="visible"; }
-
-function PleaseWaitHide() {	Blanket_Div.style.visibility="visible"; }
-function PleaseWaitShow() {	Blanket_Div.style.visibility="hidden"; }
 
 function Backup(){
 	Header_Div.style.background="#329f50";
@@ -547,6 +565,7 @@ function Repair(){
 	Location_Div.style.visibility="hidden";
 	Toolslist_Div.style.visibility="visible";
 }
+
 </script>
 </head>
 <body align="center">
@@ -581,16 +600,20 @@ function Repair(){
 		<P>
 
 		<div id="Host_Div" style="visibility: visible; width:400px">
-			<h2 align="Left">Host</h2>
+			<h2 align="Left">Host <input type="Button" id="test" value="Test" onClick="CheckMySQL1" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button></h2>
+			
 			IP Address: <input type="text" name="Host_IP" value="localhost" size="10">
 			Database: <input type="text" name="Host_DB" value="deliqs" size="10">
+			<Span id="DB1Check" style="color:Orange;">??</span>
 		</div>
 		<br>
 
 		<div id="Target_Div" style="visibility: hidden; width:400px">
-			<h2 align="Left">Target</h2>
+			<h2 align="Left">Target <input type="Button" id="test2" value="Test" onClick="CheckMySQL2" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button></h2>
 			IP Address: <input type="text" name="Target_IP" value="localhost" size="10">
 			Database: <input type="text" name="Target_DB" value="deliqs" size="10">
+			
+			<Span id="DB2Check" style="color:Orange;">??</span>
 		</div>
 		<br>
 
@@ -615,8 +638,6 @@ function Repair(){
 				<option value="9">9. Remove Orphaned Sales</option>
 				<option value="10">10. Delete All Products</option>
 				<option value="11">11. Cleanup Old Data</option>
-				<option value="12">12. Test</option>
-				
 			</select>
 
 		<p>
