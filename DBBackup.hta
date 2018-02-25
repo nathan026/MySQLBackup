@@ -17,11 +17,10 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.02.20" />
+  VERSION="2018.02.25" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
-<!--  https://github.com/nathan026/MySQLBackup/blob/master/version.txt -->
 <!--  https://drive.google.com/drive/folders/1ecctYjAjxjwJwYmYh4YI9GT-_Ir9SbL2 -->
 <style>
 
@@ -458,6 +457,9 @@ Sub Tools
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY);" & _
 						"UPDATE dealcost SET updated=NOW();" & _
+						"DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
+							"LEFT JOIN campaign c ON c.id=cpsa.campaignid" & _
+							"WHERE c.campaigntype>0;" & _
 						"DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL;" & _
 						"DELETE c, cp, cs, cpg, cpp FROM campaign c " & _
 							"LEFT JOIN campaignplu cp ON c.id=cp.campaignid " & _
