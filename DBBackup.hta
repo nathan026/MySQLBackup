@@ -472,7 +472,7 @@ Sub Tools
 						"DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
 						"DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
 						"DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
-						"DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH);"
+						"DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH);" & _
 						"TRUNCATE TABLE deliorderheader_h;"
 			objFile2.WriteLine strLine
 			objFile2.Close
