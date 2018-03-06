@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.02.28" />
+  VERSION="2018.03.05" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -104,6 +104,7 @@ window.moveTo (screen.Width - 500)/2, ((screen.Height - 550)/2)-20
 
 On Error Resume Next
 Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj, objShell
+Dim strCommandLine, strHTA
 
 Set objWMIService 		= GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\.\root\cimv2")
 Set fso 				= CreateObject("Scripting.FileSystemObject")
@@ -113,11 +114,13 @@ Set tfolder 			= fso.GetSpecialFolder(TemporaryFolder)
 set http_obj 			= CreateObject("Microsoft.XMLHTTP")
 set stream_obj 			= CreateObject("ADODB.Stream")
 
-strSQLUser = tfolder & "\sqluser"
-strTools   = tfolder & "\sqlTools"
-strSQLFile = tfolder & "\mysqldump.sql"
-strBackup  = tfolder & "\MySQL_Backup"
-strAppVer  = MySQLBackup.Version
+strSQLUser     = tfolder & "\sqluser"
+strTools       = tfolder & "\sqlTools"
+strSQLFile     = tfolder & "\mysqldump.sql"
+strBackup      = tfolder & "\MySQL_Backup"
+strAppVer      = MySQLBackup.Version
+strHTA         = Self.location.pathname
+strCommandLine = MySQLBackup.CommandLine
 
 
 Const TemporaryFolder = 2
@@ -154,6 +157,7 @@ Sub Window_OnLoad
 
 	setTimeout "CheckUpdate", 100, "VBScript"
 	call CheckMySQL1()
+
 End Sub
 
 Sub CheckMySQL1
@@ -310,18 +314,6 @@ Sub Tools
 		End Select
 	End If
 	
-''	IF tools99.selectedIndex = 3 Then  '' Delete Sales
-''		strDateFrom = InputBox("Enter a date to delete the sales from (YYYY-MM-DD):")
-''		strDateTo = InputBox("Enter a date to delete the sales upto (YYYY-MM-DD):")
-''		result = MsgBox ("Delete all sales between " & strDateFrom & " and " & strDateTo & vbCrLf & "Dates are inclusive!" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Delete Sales Between")
-''
-''		Select Case result
-''		Case vbYes
-''			MsgBox("Option not yet implemented")
-''		Case vbNo
-''		End Select
-''	End If
-
 	IF tools99.selectedIndex = 4 Then  '' Reset Database
 		result = MsgBox ("This will TRUNCATE all* tables in the database" & vbCrLf & "Settings and sales related tables will be kept" & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Reset Database")
 
@@ -483,7 +475,15 @@ Sub Tools
 	End If
 	
 	IF tools99.selectedIndex = 11 Then  '' Test
-
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+			
+			set objFile3 = fso.OpenTextFile(strTools & "results",1)
+			tempdata = objFile3.readAll()
+			MsgBox (tempdata)
 	End If
 	
 	Blanket_Div.style.visibility="Hidden"
@@ -505,6 +505,11 @@ End Sub
 
 Sub Download
 	Blanket_Div.style.visibility="visible"
+	
+	If Not IsAdmin( True ) Then
+		msgbox ("Need permission to write file...")
+	End If
+
 		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
 		http_obj.send
 
@@ -530,6 +535,49 @@ Function TextFromHTML( myURL )
     Set objHTTP = Nothing
     On Error Goto 0
 End Function
+
+Function IsAdmin( showMessage )
+    Dim intRC
+    Dim objUAC
+    
+    IsAdmin = False
+
+	On Error Resume Next
+	' intRC = objShell.Run( "CMD /C OPENFILES > NUL 2>&1", 7, True ) ' CHeck for Admin
+	intRC = objShell.Run( "cmd /C echo. > """ & replace(strHTA,".","") & ".1""", 7, True ) ' Check for Write Privileges to current folder
+	If Err Then intRC = 1
+	On Error Goto 0
+	
+	If intRC = 0 Then
+		intRC = objShell.Run( "cmd /C DEL /F /Q """ & replace(strHTA,".","") & ".1""", 7, True )	    
+		IsAdmin = True
+	Else
+		intRC = objShell.Run( "cmd /C DEL /F /Q """ & replace(strHTA,".","") & ".1""", 7, True )
+		IsAdmin = False
+		' Strip HTA file name or path from command line
+		If InStr( strCommandLine, """" & strHTA & """" ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 3 )
+		ElseIf InStr( strCommandLine, strHTA ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 1 )
+		ElseIf InStr( strCommandLine, """" & fso.GetFileName( strHTA ) & """" ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 3 )
+		ElseIf InStr( strCommandLine, fso.GetFileName( strHTA ) ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 1 )
+		ElseIf InStr( strCommandLine, fso.GetFileName( strHTA ) ) > 0 Then
+			strCommandLine = Mid( strCommandLine, InStr( strHTA ) + Len( strHTA ) + 1 )
+			If Left( strCommandLine, 1 ) = """" Then strCommandLine = Mid( strCommandLine, 2 )
+	Else
+		' Error: do nothing, the HTA will close
+	End If
+	strCommandLine = Replace( Trim( strCommandLine ), """", """""" )
+	' Elevate privileges
+	Set objUAC = CreateObject( "Shell.Application" )
+	objUAC.ShellExecute "MSHTA.EXE", """" & strHTA & """ /NOADMIN " & strCommandLine, "", "runas", 1
+	Set objUAC = Nothing
+	window.close True
+	End If
+End Function
+
 
 </script>
  <script language="javascript">
@@ -609,7 +657,7 @@ function Repair(){
 			
 			IP Address: <input type="text" name="Host_IP" value="localhost" size="10">
 			Database: <input type="text" name="Host_DB" value="deliqs" size="10">
-			<Span id="DB1Check" style="color:Orange;">??</span>
+			<Span id="DB1Check" style="font-family: monospace; color:Orange;">??</span>
 		</div>
 		<br>
 
@@ -618,7 +666,7 @@ function Repair(){
 			IP Address: <input type="text" name="Target_IP" value="localhost" size="10">
 			Database: <input type="text" name="Target_DB" value="deliqs" size="10">
 			
-			<Span id="DB2Check" style="color:Orange;">??</span>
+			<Span id="DB2Check" style="font-family: monospace; color:Orange;">??</span>
 		</div>
 		<br>
 
@@ -643,6 +691,7 @@ function Repair(){
 				<option value="9">9. Remove Orphaned Sales</option>
 				<option value="10">10. Delete All Products</option>
 				<option value="11">11. Cleanup Old Data</option>
+				<option value="12">12. Check Lane Status</option>
 			</select>
 
 		<p>
