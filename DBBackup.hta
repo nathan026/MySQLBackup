@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.03.05" />
+  VERSION="2018.03.13" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -474,7 +474,7 @@ Sub Tools
 		End Select
 	End If
 	
-	IF tools99.selectedIndex = 11 Then  '' Test
+	IF tools99.selectedIndex = 11 Then  '' Check Operator Logged In
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = 	"SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
 			objFile2.WriteLine strLine
@@ -486,7 +486,16 @@ Sub Tools
 			MsgBox (tempdata)
 	End If
 	
+	IF tools99.selectedIndex = 12 Then  '' Test
+			
+	End If
+	
+	
 	Blanket_Div.style.visibility="Hidden"
+End Sub
+
+Sub CMD
+			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " -u gap -pgap " & Host_DB.Value, 1, False
 End Sub
 
 Sub CheckUpdate( )
@@ -653,8 +662,11 @@ function Repair(){
 		<P>
 
 		<div id="Host_Div" style="visibility: visible; width:400px">
-			<h2 align="Left">Host <input type="Button" id="test" value="Test" onClick="CheckMySQL1" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button></h2>
-			
+			<h2 align="Left">Host
+			<input type="Button" id="test" value="Test" onClick="CheckMySQL1" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button>
+			<input type="Button" id="CMD" value=" # " onClick="CMD" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button>
+			</h2>
+
 			IP Address: <input type="text" name="Host_IP" value="localhost" size="10">
 			Database: <input type="text" name="Host_DB" value="deliqs" size="10">
 			<Span id="DB1Check" style="font-family: monospace; color:Orange;">??</span>
@@ -662,10 +674,12 @@ function Repair(){
 		<br>
 
 		<div id="Target_Div" style="visibility: hidden; width:400px">
-			<h2 align="Left">Target <input type="Button" id="test2" value="Test" onClick="CheckMySQL2" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button></h2>
+			<h2 align="Left">Target 
+			<input type="Button" id="test2" value="Test" onClick="CheckMySQL2" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button>
+			</h2>
+
 			IP Address: <input type="text" name="Target_IP" value="localhost" size="10">
 			Database: <input type="text" name="Target_DB" value="deliqs" size="10">
-			
 			<Span id="DB2Check" style="font-family: monospace; color:Orange;">??</span>
 		</div>
 		<br>
@@ -699,7 +713,7 @@ function Repair(){
 		<p>
 		<input type="button" id="start" name="Start" value="  Start  " style="font-size:20px; border:none; color:white; background-color:#329f50;" onClick="Start()">
 	</div>
-	
+
 	<div id="Footer_Div"  class="Footer_Div">
 		<a style="font-size:18px;"> GaP Solutions Pty. Ltd.</a>
 		<br>
