@@ -1,1 +1,3 @@
-2018.03.05
+2018.03.13
+
+2018-03-14: Add # button next to Host Label to open MySQL command line using Host Details (IP/Machine Name and Database)
