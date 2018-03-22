@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.03.21" />
+  VERSION="2018.03.22" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -492,7 +492,28 @@ Sub Tools
 			MsgBox (tempdata)
 	End If
 	
-	IF tools99.selectedIndex = 12 Then  '' Test
+	IF tools99.selectedIndex = 12 Then  '' Update Store name and address for all cassettes
+	strStoreName = InputBox("Store Name...")
+	strStoreAddress = InputBox("Store Address...")
+
+		IF Not strStoreName="" Then
+			result = MsgBox ("Store Name: " & strStoreName & vbCrLf &_
+							 "Store Address: " & strStoreAddress & vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Change Store Name and Address")
+
+			Select Case result
+			Case vbYes
+				Set objFile2 = fso.CreateTextFile(strTools)
+				strLine = "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """;"
+				objFile2.WriteLine strLine
+				objFile2.Close
+				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				MsgBox("Complete")
+			Case vbNo
+			End Select
+		End If
+	End If
+	
+	IF tools99.selectedIndex = 13 Then  '' Test
 			
 	End If
 
@@ -530,7 +551,8 @@ Sub Download
 
 		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
 		http_obj.send
-
+		
+		'fso.MoveFile "DBBackup.hta", "DBBackup.hta.old"
 		stream_obj.type = 1
 		stream_obj.open
 		stream_obj.write http_obj.responseBody
@@ -703,7 +725,7 @@ function Repair(){
 			<h2 align="Left">Tools</h2>
 
 			<select id="ToolList" name="tools99">
-				<option value="1">1. Check & Repair</option>
+				<option value="1">1. Flush, Check & Repair</option>
 				<option value="2">2. Create GaP Users</option>
 				<option value="3">3. Convert To InnoDB</option>
 				<option value="4">4. Update Product Current Cost</option>
@@ -715,6 +737,7 @@ function Repair(){
 				<option value="10">10. Delete All Products</option>
 				<option value="11">11. Cleanup Old Data</option>
 				<option value="12">12. Check Lane Status</option>
+				<option value="13">13. Update Store Name & Address</option>
 			</select>
 
 		<br>
