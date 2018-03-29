@@ -1,7 +1,8 @@
 2018.03.28
 
 ### Changes ###
-2018-03-29: Add Changelog to "Help!" button. User Manual opens in default browser now.
+2018-03-29:
+* Add Changelog to "Help!" button. User Manual opens in default browser now.
 
 2018-03-23: Add Option 13, Update Store Name & Address, to Tools list.
 
