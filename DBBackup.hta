@@ -246,7 +246,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 
 	Checking.style.visibility="Visible"
 		strCurrentVer = Split( MySQLBackup.Version )(0)
-		strUpdate = TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer )
+		strUpdate = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ), 500)
 		strLatestVer  = LEFT(strUpdate,10)
 		
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
@@ -259,7 +259,7 @@ End Sub
 Sub Help
 	Blanket_Div.style.visibility="Visible"
 	
-	result = msgbox(strUpdate & vbCrLf & cvCrLf & "Do you want to open the user manual?", vbYesNo, "Help!")
+	result = msgbox(strUpdate & "..." & vbCrLf & vbCrLf & cvCrLf & "Do you want to open the user manual?", vbYesNo, "Help!")
 	Select Case result
 	Case vbYes
 		objShell.run("https://docs.google.com/document/d/18HCIYXgQLZNelujriRDQbpEuopKLgJC44QNgoiwbR8M/edit?usp=sharing")
