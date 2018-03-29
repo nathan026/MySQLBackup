@@ -258,14 +258,16 @@ End Sub
 
 Sub Help
 	Blanket_Div.style.visibility="Visible"
-	
-	result = msgbox(strUpdate & "..." & vbCrLf & vbCrLf & cvCrLf & "Do you want to open the user manual?", vbYesNo, "Help!")
+
+	result = msgbox("   Your Version: " & MySQLBackup.Version & vbCrLf &_
+	"Latest Version: " & strUpdate & "..." & vbCrLf & vbCrLf & cvCrLf & "Do you want to open the user manual?", vbYesNo, "Help!")
+
 	Select Case result
 	Case vbYes
 		objShell.run("https://docs.google.com/document/d/18HCIYXgQLZNelujriRDQbpEuopKLgJC44QNgoiwbR8M/edit?usp=sharing")
 	Case vbNo
 	End Select
-	
+
 	Blanket_Div.style.visibility="Hidden"
 End Sub
 
