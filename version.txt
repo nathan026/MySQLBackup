@@ -1,6 +1,10 @@
-2018.03.22
+2018.03.28
 
 ### Changes ###
+2018-03-29: Add Changelog to "Help!" button. User Manual opens in default browser now.
+
 2018-03-23: Add Option 13, Update Store Name & Address, to Tools list.
+
 2018-03-22: Add "Backup first" option to Tools menu to take a backup before performing the function.
+
 2018-03-14: Add # button next to Host Label to open MySQL command line using Host Details (IP/Machine Name and Database)
