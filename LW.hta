@@ -1,0 +1,402 @@
+<html>
+ 
+ <title>Lane Wizard | GaP Solutions pty. ltd.</title>
+ <head>
+ <HTA:APPLICATION
+  ID="LaneWizard"
+BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  MAXIMIZEBUTTON="yes"
+  MINIMIZEBUTTON="yes"
+  WINDOWSTATE="window"
+  NAVIGATABLE="yes"
+  INNERBORDERS="no"
+  SCROLL="no"
+  APPLICATIONNAME="Lane Wizzard"
+  SINGLEINSTANCE="no"
+  SYSMENU="yes"
+  SELECTION="no"
+  VERSION="2018.04.03" />
+ </head>
+ <!--  https://github.com/nathan026/MySQLBackup -->
+ 
+ <style>
+ 
+ BODY {
+     background-color: #000000;
+	 font-family: Verdana;
+	 font-size: 15px;
+	 color: white;
+     margin: 0;
+	 }
+	
+ </style>
+ 
+ <script language="VBScript">
+window.resizeTo 500,550
+window.moveTo (screen.Width - 500)/2, ((screen.Height - 550)/2)-20
+
+Dim strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, fso, tempfile, tfolder
+Dim strCommandLine, strHTA
+
+Const TemporaryFolder = 2
+Set objWMIService	= GetObject("winmgmts:" & "{impersonationLevel=impersonate}!\\.\root\cimv2")
+Set fso				= CreateObject("Scripting.FileSystemObject")
+Set objShell		= CreateObject("WScript.Shell")
+Set UAC				= CreateObject("Shell.Application")
+Set tfolder			= fso.GetSpecialFolder(TemporaryFolder)
+
+strSQLUser = tfolder & "\sqluser"
+strSQLFile = tfolder & "\mysqldump.sql"
+strBackup = tfolder & "\MySQL_Backup"
+
+
+Sub Window_OnLoad
+ 	If Not IsAdmin( True ) Then
+		msgbox "Need permission to write file...", , "Warning!"
+	End If
+	
+	Set colIP = objWMIService.ExecQuery ("Select * From Win32_NetworkAdapterConfiguration Where IPEnabled = True")
+	Set colBIOS = objWMIService.ExecQuery ("Select * from Win32_BIOS")
+	Set colUSER = objWMIService.ExecQuery ("select * from Win32_useraccount")
+	Set colCOMPNAME = objWMIService.ExecQuery( "Select * from Win32_ComputerSystem" )
+	Set colComputers = objWMIService.ExecQuery ("Select * from Win32_ComputerSystem")
+
+	For each objCOMPNAME in colCOMPNAME
+		strCompName = objCOMPNAME.Name
+		strHTML = strHTML & strCompName
+	next
+
+	For each objBIOS in colBIOS
+		Serial.Value = objBIOS.SerialNumber
+	Next
+
+	For each objCOMPNAME in colCOMPNAME
+		CompName.innerHTML = objCOMPNAME.Name
+	next
+
+	On Error Resume Next
+	For each objitem in colIP
+		strIPAddress = Join(objitem.IPAddress, ".")
+		IP.innerHTML = Join(objitem.IPAddress, " _ _ _ ")
+		Exit For
+	Next
+
+	outputArray = split(strIPAddress, ".")
+	StoreNo.Value = outputArray(2)
+
+	Set objRegEx = CreateObject("VBScript.RegExp")
+	objRegEx.Global = True
+	objRegEx.Pattern = "[^0-9]"
+	Set colMatches = objRegEx.Execute(Right(strCompName,2))  
+	If colMatches.Count > 0 Then
+		MachineNo.Value = "00"
+	Else
+		MachineNo.Value = Right(strCompName,2)
+	End If
+	On Error Goto 0
+
+	For each objUser in colUSER
+		strUser = ucase(objUser.caption & ",")
+	Next
+
+	DataArea.innerHTML = strHTML
+
+	If fso.FileExists("C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
+		strMySQL = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe"""
+		strMySQLdump = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
+		strMySQLcheck = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
+		strMySQL = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
+		strMySQLdump = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
+		strMySQLcheck = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+	else
+		MsgBox("MySQL could not be found")
+	end if
+
+
+setTimeout "CheckUpdate", 100, "VBScript"
+ End Sub
+
+
+ Function IsAdmin( showMessage )
+    Dim intRC
+    Dim objUAC
+    
+    IsAdmin = False
+
+	On Error Resume Next
+	' intRC = objShell.Run( "CMD /C OPENFILES > NUL 2>&1", 7, True ) ' CHeck for Admin
+	 intRC = objShell.Run( "cmd /C echo. > c:\windows\1.1", 7, True ) ' Check for Write Privileges to Windows folder
+	If Err Then intRC = 1
+	On Error Goto 0
+	
+	If intRC = 0 Then
+		IsAdmin = True
+	Else
+		strHTA = Self.location.pathname
+		strCommandLine = LaneWizard.CommandLine
+		' Strip HTA file name or path from command line
+		If InStr( strCommandLine, """" & strHTA & """" ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 3 )
+		ElseIf InStr( strCommandLine, strHTA ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 1 )
+		ElseIf InStr( strCommandLine, """" & gvoFSO.GetFileName( strHTA ) & """" ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 3 )
+		ElseIf InStr( strCommandLine, gvoFSO.GetFileName( strHTA ) ) = 1 Then
+			strCommandLine = Mid( strCommandLine, Len( strHTA ) + 1 )
+		ElseIf InStr( strCommandLine, gvoFSO.GetFileName( strHTA ) ) > 0 Then
+			strCommandLine = Mid( strCommandLine, InStr( strHTA ) + Len( strHTA ) + 1 )
+			If Left( strCommandLine, 1 ) = """" Then strCommandLine = Mid( strCommandLine, 2 )
+		Else
+			' Error: do nothing, the HTA will close
+		End If
+		strCommandLine = Replace( Trim( strCommandLine ), """", """""" )
+		' Elevate privileges
+		Set objUAC = CreateObject( "Shell.Application" )
+		objUAC.ShellExecute "MSHTA.EXE", """" & strHTA & """ /NOADMIN " & strCommandLine, "", "runas", 1
+		Set objUAC = Nothing
+		window.close True
+	End If
+End Function
+	
+Sub Start
+ Set colComputers = objWMIService.ExecQuery ("Select * from Win32_ComputerSystem")
+	call PleaseWaitHide()
+	
+	''###### serial Number
+	If fso.FileExists("c:\Serialno.txt") Then
+		Set objFile = fso.OpenTextFile("c:\Serialno.txt", 2)
+		objFile.WriteLine Serial.Value
+		objFile.Close
+	Else
+		Set objFile = fso.CreateTextFile("c:\Serialno.txt")
+		objFile.WriteLine Serial.Value
+		objFile.Close
+	End If
+
+	''###### timezone
+	UAC.ShellExecute "tzutil.exe", "/s """ & timezone.Value & "", "", "runas", 1
+
+	''###### machine name
+	For Each objComputer in colComputers
+		If StoreCheckBox.Checked Then
+			err = objComputer.Rename(Right("000" & StoreNo.Value, 3) & "_Lane" & Right("00" & MachineNo.Value, 2))
+		Else
+			err = objComputer.Rename("Lane" & Right("00" & MachineNo.Value, 2))
+		End if
+	Next
+
+	''###### ezipos
+    If mode(0).Checked Then 
+		fso.CopyFile "c:\support\ezi-POS.lnk", "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\"
+		MsgBox("Please install latest version of ezi-pos...")
+    End If
+
+	''###### logivision
+	If mode(1).Checked Then 
+		On error resume Next 
+				Dim WshShell, oReg, keyname 
+				Const HKEY_LOCAL_MACHINE = &H80000002 
+					Set WshShell = CreateObject("WScript.Shell") 
+					Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\" & strComputer & "\root\default:StdRegProv") 
+					strKeyPath = "SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall" 
+					oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys 
+					For Each subkey In arrSubKeys 
+					keyname = "" 
+					keyname = wshshell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey & "\DisplayName") 
+					If keyname = ezi-POS then 
+						j = subkey 
+					End If 
+					Next 
+					If j Then 
+						WshShell.Run "MSIEXEC.EXE /X " & j & " /QB!", 1, True 
+					End If 
+				Set WshShell = Nothing 
+				set ObjReg = Nothing 
+		MsgBox("Please install correct version of L-POS...")
+	End If
+
+	''###### Delete Desktop Shortcut
+	If fso.FileExists("C:\Users\POS\Desktop\LaneWizard.lnk") Then
+		fso.DeleteFile "C:\Users\POS\Desktop\LaneWizard.lnk"
+	End If
+
+	''###### Message Box
+	result = MsgBox ("Restart Windows? Press No if you plan to restart later.", vbYesNo+vbExclamation+vbDefaultButton1, "Setup Complete!")
+	Dim message
+	Select Case result
+		Case vbYes
+			objShell.Run "shutdown.exe /R /T 5 /C ""Rebooting now!"" "
+		Case vbNo
+		End Select
+	call PleaseWaitShow()
+End Sub
+
+Sub S_Up
+	document.getElementById("StoreNo").value = document.getElementById("StoreNo").value + 1
+	StoreNoChange
+end Sub
+
+Sub S_Down
+	document.getElementById("StoreNo").value = document.getElementById("StoreNo").value - 1
+	StoreNoChange
+End Sub
+
+Sub M_Up
+	document.getElementById("MachineNo").value = document.getElementById("MachineNo").value + 1
+	StoreNoChange
+End Sub
+
+Sub M_Down
+	document.getElementById("MachineNo").value = document.getElementById("MachineNo").value - 1
+	StoreNoChange
+End Sub
+
+Sub StoreNoChange
+	If StoreCheckBox.Checked Then
+		StoreNo.Disabled = False
+		StoreNoDiv.style.visibility="visible"
+		DataAreaMachineName.innerHTML = Right("000" & StoreNo.Value, 3) & "_Lane" & Right("00" & MachineNo.Value, 2)
+	Else
+		StoreNo.Disabled = True
+		StoreNoDiv.style.visibility="hidden"
+		DataAreaMachineName.innerHTML = "Lane" & Right("00" & MachineNo.Value, 2)
+	End If
+End Sub
+ 
+Sub TeamViewer
+
+End Sub
+
+Sub CheckUpdate ''CHECK FOR UPDATES
+	Dim lenLatestVer, strCurrentVer, strLatestver
+
+		strCurrentVer = Split( LaneWizard.Version )(0)
+		strUpdate = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/LW-version.txt?noone=" & timer ), 500)
+		strLatestVer  = LEFT(strUpdate,10)
+		
+		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
+			Blanket_Div.style.visibility="visible"
+	
+			If Not IsAdmin( True ) Then
+				msgbox "Need permission to write file...", , "Warning!"
+			End If
+
+			http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/LW.hta?noonce=" & timer, False
+			http_obj.send
+	
+			stream_obj.type = 1
+			stream_obj.open
+			stream_obj.write http_obj.responseBody
+			stream_obj.savetofile "LW.hta", 2
+			objShell.run "LW.hta"
+			Self.Close()
+			Blanket_Div.style.visibility="Hidden"
+		End If
+End Sub
+
+Function TextFromHTML( myURL )
+    Dim objHTTP
+    TextFromHTML = ""
+    On Error Resume Next
+    Set objHTTP = CreateObject( "WinHttp.WinHttpRequest.5.1" )
+    objHTTP.Open "GET", myURL
+    objHTTP.Send
+    If Err Then gvbConnected = False
+    ' Check if the result was valid, and if so return the result
+    If objHTTP.Status = 200 Then TextFromHTML = objHTTP.ResponseText
+    Set objHTTP = Nothing
+    On Error Goto 0
+End Function
+
+</script>
+ <script language="javascript">
+ function PleaseWaitHide() {
+	Blanket.style.visibility="visible";
+ }
+ function PleaseWaitShow() {
+	Blanket.style.visibility="hidden";
+ }
+ 
+ function ezipos(){
+	header.style.background="#B82601";
+	document.getElementById("heading").innerHTML = "GaP Solutions ezi-pos"
+ }
+ function logivision() {
+	header.style.background="#813772";
+	document.getElementById("heading").innerHTML = "Logivision L-POS"
+ }
+
+ </script>
+
+<body align="center">
+	<div id="Blanket" style="Background:Black; filter:alpha(opacity=80); opacity:0.2; z-index:9999; height:100%; width:100%; position:absolute; visibility:hidden; text-align:center; line-height: 600px;">
+		<span style="font-size:50px;display: inline-block; vertical-align: middle;">Please Wait...</span>
+		<br><span id="DataArea"></span><br>
+	</div>
+	
+	<div id="header" style="height:10%; background-color:#B82601;">
+		<span id="CompName"></span>
+		<br>
+		<span id="IP" style="color:#dfe4e6;">NO NETWORK DETECTED</span>
+		<br>
+		<span id="MySQL" style="font-size:14px"></span>
+		<p>
+	</div>
+	
+	<div id="main" align="center" style="background-color:#000000; color: White; width:100%; height:85%;">
+		<input type="Radio" checked="true" id="ezipos" name="mode" Value="1" onClick="ezipos()" />
+			<label for="ezipos">ezi-pos</label>
+		<input type="Radio" id="logivision" name="Mode" Value="2" onClick="logivision()">
+			<label for="logivision">L-POS</label>
+		<p>
+		
+		<div id="Settings" style="visibility: visible; width:400px">
+			<h2 id="heading" align="Left">GaP Solutions ezi-pos</h2>
+			Select Time Zone: 
+				<select size="1" name="timezone">
+					<option value="">---</option>
+					<option value="W. Australia Standard Time">Perth</option>
+					<option value="Cen. Australia Standard Time">Adelaide</option>
+					<option value="AUS Central Standard Time">Darwin</option>
+					<option value="E. Australia Standard Time">Brisbane</option>
+					<option value="AUS Eastern Standard Time">Can, Melb, Syd</option>
+					<option value="Tasmania Standard Time">Hobart</option>
+				</select>
+			<p>
+			POS Serial Number:
+			<input class="text" value="" name="Serial">
+			<p>
+			Use Store Number:
+			<input type="checkbox" name="StoreCheckBox" title="StoreNo" onclick="StoreNoChange">
+			<br>
+			
+			<div id="StoreNoDiv" style="visibility: hidden">
+				<input type="button" name="BUT_S_Up" value="UP" onClick="S_Up">
+				<input class="text" name="StoreNo" value="0" onChange="StoreNoChange" disabled>
+				<input type="button" name="BUT_S_Down" value="DOWN" onClick="S_Down">
+			</div>
+			
+			<p>
+			Lane Number:
+			<input type="button" name="BUT_M_Up" value="UP" onClick="M_Up">
+			<input type="text" name="MachineNo" value="00" onChange="StoreNoChange">
+			<input type="button" name="BUT_M_Down" value="DOWN" onClick="M_Down">
+		</div>
+		aaaaaaa
+		<br>
+		<br>
+		<input type="button" id="start" name="Start" value="  Start  " style="font-size:20px; border:none; color:white; background-color:#B82601;" onClick="Start()">		
+		<p>
+		<span id="DataAreaMachineName">Lane00</span><br>
+	</div>
+	
+	<div id="Footer" style="background-color:062F4F; color:#dfe4e6; bottom:0px; height:5%; font-size:20px;  position:absolute; width:100%;">
+	GaP Solutions Pty. Ltd.<br>
+	<a style="font-size:11px; color:#dfe4e6;">www.gapsolutions.com.au</a>
+	<input type="button" id="Teamviewer" name="TeamViewer" value="Get TeamViewer" style="position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapquick'">
+	</div>
+ </body>
+ </html>
