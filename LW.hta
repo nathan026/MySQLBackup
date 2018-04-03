@@ -37,7 +37,7 @@ BORDER="thin"
 window.resizeTo 500,550
 window.moveTo (screen.Width - 500)/2, ((screen.Height - 550)/2)-20
 
-Dim strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, fso, tempfile, tfolder
+Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj, objShell, strUpdate
 Dim strCommandLine, strHTA
 
 Const TemporaryFolder = 2
@@ -46,6 +46,8 @@ Set fso				= CreateObject("Scripting.FileSystemObject")
 Set objShell		= CreateObject("WScript.Shell")
 Set UAC				= CreateObject("Shell.Application")
 Set tfolder			= fso.GetSpecialFolder(TemporaryFolder)
+set http_obj 			= CreateObject("Microsoft.XMLHTTP")
+set stream_obj 			= CreateObject("ADODB.Stream")
 
 strSQLUser = tfolder & "\sqluser"
 strSQLFile = tfolder & "\mysqldump.sql"
@@ -278,7 +280,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 		strLatestVer  = LEFT(strUpdate,10)
 		
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
-			Blanket_Div.style.visibility="visible"
+			PleaseWaitShow()
 	
 			If Not IsAdmin( True ) Then
 				msgbox "Need permission to write file...", , "Warning!"
@@ -290,10 +292,11 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 			stream_obj.type = 1
 			stream_obj.open
 			stream_obj.write http_obj.responseBody
-			stream_obj.savetofile "LW.hta", 2
-			objShell.run "LW.hta"
+			
+			stream_obj.savetofile self.location.pathname, 2
+			objShell.run """" & self.location.pathname & """"
 			Self.Close()
-			Blanket_Div.style.visibility="Hidden"
+			PleaseWaitHide()
 		End If
 End Sub
 
@@ -385,7 +388,7 @@ End Function
 			<input type="text" name="MachineNo" value="00" onChange="StoreNoChange">
 			<input type="button" name="BUT_M_Down" value="DOWN" onClick="M_Down">
 		</div>
-		aaaaaaa
+		
 		<br>
 		<br>
 		<input type="button" id="start" name="Start" value="  Start  " style="font-size:20px; border:none; color:white; background-color:#B82601;" onClick="Start()">		
