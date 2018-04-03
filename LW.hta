@@ -4,7 +4,7 @@
  <head>
  <HTA:APPLICATION
   ID="LaneWizard"
-BORDER="thin"
+  BORDER="thin"
   BORDERSTYLE="normal"
   CAPTION="yes"
   MAXIMIZEBUTTON="yes"
@@ -221,8 +221,13 @@ Sub Start
 	End If
 
 	''###### Delete Desktop Shortcut
-	If fso.FileExists("C:\Users\POS\Desktop\LaneWizard.lnk") Then
-		fso.DeleteFile "C:\Users\POS\Desktop\LaneWizard.lnk"
+	If fso.FileExists("C:\Users\POS\Desktop\Lane Wizard.lnk") Then
+		fso.DeleteFile "C:\Users\POS\Desktop\Lane Wizard.lnk"
+	End If
+	
+	''###### Delete Startup Shortcut
+	If fso.FileExists("C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\Lane Wizard.lnk") Then
+		fso.DeleteFile "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\Lane Wizard.lnk"
 	End If
 
 	''###### Message Box
@@ -280,7 +285,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 		strLatestVer  = LEFT(strUpdate,10)
 		
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
-			PleaseWaitShow()
+			call PleaseWaitShow()
 	
 			If Not IsAdmin( True ) Then
 				msgbox "Need permission to write file...", , "Warning!"
@@ -296,7 +301,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 			stream_obj.savetofile self.location.pathname, 2
 			objShell.run """" & self.location.pathname & """"
 			Self.Close()
-			PleaseWaitHide()
+			call PleaseWaitHide()
 		End If
 End Sub
 
@@ -399,7 +404,7 @@ End Function
 	<div id="Footer" style="background-color:062F4F; color:#dfe4e6; bottom:0px; height:5%; font-size:20px;  position:absolute; width:100%;">
 	GaP Solutions Pty. Ltd.<br>
 	<a style="font-size:11px; color:#dfe4e6;">www.gapsolutions.com.au</a>
-	<input type="button" id="Teamviewer" name="TeamViewer" value="Get TeamViewer" style="position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapquick'">
+	<input type="button" id="Teamviewer" name="TeamViewer" value="Get TeamViewer" style="position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapsupport'">
 	</div>
  </body>
  </html>
