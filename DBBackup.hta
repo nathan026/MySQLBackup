@@ -197,8 +197,9 @@ Sub start
 		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
 				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
 				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
-				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; "
-				  '' "DROP DATABASE IF EXISTS " & Target_DB.Value & "; CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
+				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; " & _
+				  '' "DROP DATABASE IF EXISTS " & Target_DB.Value & ";" & _
+				  "CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
 	objFile.WriteLine strLine
 	objFile.Close
 
