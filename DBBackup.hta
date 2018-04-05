@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.03.28" />
+  VERSION="2018.04.05" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -135,10 +135,12 @@ Sub Window_OnLoad
 		CompName.innerHTML = objCOMPNAME.Name
 	next
 
+	On Error Resume Next
 	For each objitem in colIP
 		IP.innerHTML = Join(objitem.IPAddress, " . . . . . . ")
 		Exit For
 	Next
+	On Error Goto 0
 
 	If fso.FileExists("C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
 		strMySQL      = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe"""
@@ -164,7 +166,7 @@ Sub CheckMySQL1
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
 			DB1Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " -u gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
 			IF DNSResult = 0 Then
 				DB1Check.innerhtml = "OK"
 				DB1Check.style.color = "Green"
@@ -178,7 +180,7 @@ Sub CheckMySQL2
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
 			DB2Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " -u gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
 			IF DNSResult = 0 Then
 				DB2Check.innerhtml = "OK"
 				DB2Check.style.color = "Green"
@@ -195,8 +197,8 @@ Sub start
 		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
 				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
 				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
-				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; " & _
-				  "DROP DATABASE IF EXISTS " & Target_DB.Value & "; CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
+				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; "
+				  '' "DROP DATABASE IF EXISTS " & Target_DB.Value & "; CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
 	objFile.WriteLine strLine
 	objFile.Close
 
@@ -205,14 +207,20 @@ Sub start
 			fso.CreateFolder strBackup
 		End If
 
-		IF Not safetybackup.Checked Then
+		strBackupName = "MySQL_dump" & replace(date,"/","")
+		If Not safetybackup.Checked then	'' Safety Backup Checked? Take Backup...
 			strBackupName = InputBox("Save backup as...", "Save As", "MySQL_dump" & replace(date,"/",""))
 		End If
-
+		
 		IF Not strBackupName ="" Then
-			objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -n -r """ & strBackup & "\" & strBackupName & ".sql" & "", 0, True
-			MsgBox "Backup Complete!", , "Complete!"
-			UAC.Open strBackup
+			objShell.Run strMySQLdump &_
+			" --user=gap -pgap --host=" & Host_IP.Value &_
+			" --add-drop-database --hex-blob=TRUE --force --databases " & Host_DB.Value & " -r """ & strBackup & "\" & strBackupName & ".sql" & "", 0, True
+
+			If Not safetybackup.Checked then	'' Safety Backup Checked? Take Backup...
+				MsgBox "Backup Complete!", , "Complete!"
+				UAC.Open strBackup
+			End If
 		End If
     End If
 
@@ -220,16 +228,16 @@ Sub start
 		If fLocation.Value ="" Then
 			MsgBox "No File Selected!", , "Error!"
 		Else
-			objShell.Run "cmd /C """ & strMySQL & " -u root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
-			objShell.Run "cmd /C """ & strMySQL & " -u gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & chr(34) & fLocation.Value & chr(34), 0, True
+			objShell.Run "cmd /C """ & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
+			objShell.Run "cmd /C """ & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & chr(34) & fLocation.Value & chr(34), 0, True
 			MsgBox "Restore Complete!", , "Complete!"
 		End If
 	End If
 
 	If mode(2).Checked Then ''MIGRATE
-		objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -r " & strSQLFile, 0, True
-		objShell.Run "cmd /C """ & strMySQL & " -u root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
-		objShell.Run "cmd /C """ & strMySQL & " -u gap -pgap -h " & Target_IP.Value & " " & Target_DB.Value & " < " & chr(34) & strSQLFile & chr(34), 0, True
+		objShell.Run strMySQLdump & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -r " & strSQLFile, 0, True
+		objShell.Run "cmd /C """ & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
+		objShell.Run "cmd /C """ & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " " & Target_DB.Value & " < " & chr(34) & strSQLFile & chr(34), 0, True
 		MsgBox "Migration Complete!", , "Complete!"
     End If
 
@@ -280,13 +288,12 @@ Sub Download ''DOWNLOAD UPDATE
 
 		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
 		http_obj.send
-		
-		'fso.MoveFile "DBBackup.hta", "DBBackup.hta.old"
+
 		stream_obj.type = 1
 		stream_obj.open
 		stream_obj.write http_obj.responseBody
-		stream_obj.savetofile "DBBackup.hta", 2
-		objShell.run "DBBackup.hta"
+		stream_obj.savetofile self.location.pathname, 2
+		objShell.run """" & self.location.pathname & """"
 		Self.Close()
 	Blanket_Div.style.visibility="Hidden"
 End Sub
@@ -352,13 +359,9 @@ End Function
 Sub Tools
 	Blanket_Div.style.visibility="visible"
 
-	If safetybackup.Checked then	'' Safety Backup Checked? Take Backup...
-		objShell.Run strMySQLdump & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -n -r """ & strBackup & "\MySQL_dump" & replace(date,"/","") & ".sql" & "", 0, True
-	End If
-
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
-		objShell.Run "cmd /C " & strMySQLadmin & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " flush-hosts ", 0, True
-		objShell.Run "cmd /C " & strMySQLcheck & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
+		objShell.Run "cmd /C " & strMySQLadmin & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " flush-hosts ", 0, True
+		objShell.Run "cmd /C " & strMySQLcheck & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
 		objShell.Run "notepad.exe %temp%\MySQLCheck.log", 1, False
 		MsgBox "Check and Repair Complete!", , "Complete!"
 	End If
@@ -392,8 +395,8 @@ Sub Tools
 			objFile2.WriteLine strLine
 			objFile2.Close
 
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >" & strTools & ".sql", 0, True
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >" & strTools & ".sql", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
 			objShell.Run "notepad.exe " & strTools & ".sql", 1, False
 		Case vbNo
 		End Select
@@ -421,7 +424,7 @@ Sub Tools
 					  "Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0));"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Current Costs have been updated!", , "Complete!"
 		Case vbNo
 		End Select
@@ -437,7 +440,7 @@ Sub Tools
 					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "mastercheck", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "mastercheck", 0, True
 
 			Set objMaster = fso.OpenTextFile (strTools & "mastercheck", 1)
 			Do Until objMaster.AtEndOfStream
@@ -454,8 +457,8 @@ Sub Tools
 						  "' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
 				objFile2.WriteLine strLine
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
-				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & "refresh", 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & "refresh", 0, True
 				MsgBox "Reset Database Complete", , "Complete!"
 			END IF
 
@@ -472,7 +475,7 @@ Sub Tools
 			strLine = "UPDATE operator SET locked=0, loggedin=0;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "All Operators Unlocked", , "Complete!"
 		Case vbNo
 		End Select
@@ -491,7 +494,7 @@ Sub Tools
 					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Products flaged to send", , "Complete!"
 		Case vbNo
 		End Select
@@ -510,7 +513,7 @@ Sub Tools
 						  "DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
 				objFile2.WriteLine strLine
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 				MsgBox "Delete Product by Master PLU_GUID Complete", , "Complete!"
 			Case vbNo
 			End Select
@@ -531,7 +534,7 @@ Sub Tools
 						"DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Remove Orphaned Sales Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -548,7 +551,7 @@ Sub Tools
 						"TRUNCATE TABLE nutrifacts"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Delete All Products Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -581,7 +584,7 @@ Sub Tools
 						"TRUNCATE TABLE deliorderheader_h;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Cleanup Old Data Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -592,7 +595,7 @@ Sub Tools
 			strLine = 	"SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
 			
 			set objFile3 = fso.OpenTextFile(strTools & "results",1)
 			tempdata = objFile3.readAll()
@@ -613,7 +616,7 @@ Sub Tools
 				strLine = "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """;"
 				objFile2.WriteLine strLine
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 				MsgBox "Updating Store Name and Address Complete", , "Complete!"
 			Case vbNo
 			End Select
@@ -632,7 +635,7 @@ Sub Tools
 End Sub
 
 Sub CMD
-			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " -u gap -pgap " & Host_DB.Value, 1, False
+			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -pgap " & Host_DB.Value, 1, False
 End Sub
 
 </script>
@@ -691,9 +694,8 @@ function Repair(){
 	<div id="Header_Div" class="Header_Div">	
 		<span id="CompName"></span>
 		<br>
-		<span id="IP"></span>
+		<span id="IP">NO NETWORK DETECTED</span>
 		<br>
-		<span id="OnlineScript" style="font-size:11px;"></span>
 	</div>
 	<p>
 
