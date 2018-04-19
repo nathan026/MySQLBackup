@@ -1,6 +1,9 @@
-2018.04.05
+2018.04.18
 
 ### Changes ###
+2018-04-19
+ +Modify Cleanup Old Data SQL
+
 2018-04-05:
  +Change Backups so that they have "Create Database If Not Exist"
  +Stop Dropping Database before restore
