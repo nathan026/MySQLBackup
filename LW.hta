@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.04.03" />
+  VERSION="2018.04.17" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
  
@@ -197,11 +197,13 @@ Sub Start
 
 	''###### machine name
 	For Each objComputer in colComputers
-		If StoreCheckBox.Checked Then
+		If StoreCheckBox(2).Checked Then ''HFM
+			err = objComputer.Rename("HF_02" & Right("0" & StoreNo.Value, 2) & Right("00" & MachineNo.Value, 2))
+		ElseIf StoreCheckBox(1).Checked Then ''Drakes
 			err = objComputer.Rename(Right("000" & StoreNo.Value, 3) & "_Lane" & Right("00" & MachineNo.Value, 2))
-		Else
+		ElseIf StoreCheckBox(0).Checked Then ''None
 			err = objComputer.Rename("Lane" & Right("00" & MachineNo.Value, 2))
-		End if
+		End If
 	Next
 
 	''###### ezipos
@@ -290,7 +292,6 @@ Sub StoreNoChange
 		StoreNo.Disabled = True
 		StoreNoDiv.style.visibility="hidden"
 		DataAreaMachineName.innerHTML = "Lane" & Right("00" & MachineNo.Value, 2)
-	
 	End If
 	
 End Sub
