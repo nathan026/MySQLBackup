@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.04.05" />
+  VERSION="2018.04.18" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -147,32 +147,41 @@ Sub Window_OnLoad
 		strMySQLadmin = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
 		strMySQLdump  = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
 		strMySQLcheck = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+		MySQLInstall = True
 
 	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
 		strMySQL      = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
 		strMySQLadmin = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
 		strMySQLdump  = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
 		strMySQLcheck = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+		MySQLInstall = True
 	Else
+		strMySQL      = "echo"
+		strMySQLadmin = "echo"
+		strMySQLdump  = "echo"
+		strMySQLcheck = "echo"
 		MsgBox "MySQL could not be found", , "Error!"
 	End If
 
 	setTimeout "CheckUpdate", 100, "VBScript"
 	call CheckMySQL1()
-
+	
 End Sub
 
 Sub CheckMySQL1
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
 			DB1Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
-			IF DNSResult = 0 Then
-				DB1Check.innerhtml = "OK"
-				DB1Check.style.color = "Green"
-			Else
-				DB1Check.innerhtml = "??"
-				DB1Check.style.color = "Orange"
+			If strMySQL = True Then
+				DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
+			
+				IF DNSResult = 0 Then
+					DB1Check.innerhtml = "OK"
+					DB1Check.style.color = "Green"
+				Else
+					DB1Check.innerhtml = "??"
+					DB1Check.style.color = "Orange"
+				End If
 			End If
 End Sub
 
@@ -180,13 +189,16 @@ Sub CheckMySQL2
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
 			DB2Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
-			IF DNSResult = 0 Then
-				DB2Check.innerhtml = "OK"
-				DB2Check.style.color = "Green"
-			Else
-				DB2Check.innerhtml = "??"
-				DB2Check.style.color = "Orange"
+			If MySQLInstall = True Then
+				DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
+				On Error Goto 0
+				IF DNSResult = 0 Then
+					DB2Check.innerhtml = "OK"
+					DB2Check.style.color = "Green"
+				Else
+					DB2Check.innerhtml = "??"
+					DB2Check.style.color = "Orange"
+				End If
 			End If
 End Sub
 
@@ -321,7 +333,7 @@ Function IsAdmin( showMessage )
 
 	On Error Resume Next
 	' intRC = objShell.Run( "CMD /C OPENFILES > NUL 2>&1", 7, True ) ' CHeck for Admin
-	intRC = objShell.Run( "cmd /C echo. > """ & replace(strHTA,".","") & ".1""", 7, True ) ' Check for Write Privileges to current folder
+	 intRC = objShell.Run( "cmd /C echo. > """ & replace(strHTA,".","") & ".1""", 7, True ) ' Check for Write Privileges to current folder
 	If Err Then intRC = 1
 	On Error Goto 0
 	
@@ -422,7 +434,7 @@ Sub Tools
 					  "COALESCE(dc.CostDecimals, c.CostDecimals, PLU.CostDecimals, 3), PLU.CurrentCostDesc = COALESCE(dc.Description, c.Description, 'Normal'), " & _
 					  "PLU.CurrentCostEnd = COALESCE(dc.End, c.EndDate), PLU.DealCostIdentifier = dc.Identifier, PLU.CurrentCostUpdated = NOW(), " & _
 					  "PLU.LastUpdatedByUser = 'support@gapsolutions.com.au' WHERE PLU.StoreID=IFNULL((select value from settings where Keyname='StoreID' and " & _
-					  "Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0));"
+					  "Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0)); "
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -492,7 +504,7 @@ Sub Tools
 					  " SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu " & _
 					  " LEFT JOIN campaignplu ON plu.plu=campaignplu.plu " & _
 					  " WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND " & _ 
-					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
+					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0); "
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -527,12 +539,12 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW());" & _
-						"DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
-						"DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
-						"DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
-						"DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
-						"DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);"
+			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW()); " & _
+						"DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
+						"DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
+						"DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
+						"DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
+						"DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); "
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -547,9 +559,9 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"TRUNCATE TABLE plu;" & _
-						"TRUNCATE TABLE plulocation;" & _
-						"TRUNCATE TABLE nutrifacts"
+			strLine = 	"TRUNCATE TABLE plu; " & _
+						"TRUNCATE TABLE plulocation; " & _
+						"TRUNCATE TABLE nutrifacts; "
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -564,25 +576,25 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY);" & _
-						"UPDATE dealcost SET updated=NOW();" & _
-						"DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
-							"LEFT JOIN campaign c ON c.id=cpsa.campaignid" & _
-							"WHERE c.campaigntype>0;" & _
-						"DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL;" & _
+			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY); " & _
+						"UPDATE dealcost SET updated=NOW(); " & _
+						"DELETE cpsa.* FROM campaignplustoreacceptance cpsa " & _
+							"LEFT JOIN campaign c ON c.id=cpsa.campaignid " & _
+							"WHERE c.campaigntype>0; " & _
+						"DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL; " & _
 						"DELETE c, cp, cs, cpg, cpp FROM campaign c " & _
 							"LEFT JOIN campaignplu cp ON c.id=cp.campaignid " & _
 							"LEFT JOIN campaignstore cs ON c.id=cs.campaignid " & _
 							"LEFT JOIN combopricegroup cpg ON c.id=cpg.CampaignID " & _
 							"LEFT JOIN combopriceplu cpp ON cpg.G_UID=cpp.GroupG_UID " & _
-							"LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid" & _
+							"LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid " & _
 							"WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH) " & _
-							"AND cpsa.id IS NULL;" & _
-						"DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
-						"DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
-						"DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
-						"DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH);" & _
-						"TRUNCATE TABLE deliorderheader_h;"
+							"AND cpsa.id IS NULL; " & _
+						"DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL; " & _
+						"DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL; " & _
+						"DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR); " & _
+						"DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH); " & _
+						"TRUNCATE TABLE deliorderheader_h; "
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -614,7 +626,7 @@ Sub Tools
 			Select Case result
 			Case vbYes
 				Set objFile2 = fso.CreateTextFile(strTools)
-				strLine = "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """;"
+				strLine = "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """; "
 				objFile2.WriteLine strLine
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -633,6 +645,107 @@ Sub Tools
 	End If
 
 	Blanket_Div.style.visibility="Hidden"
+End Sub
+
+Sub VersionDetail
+Blanket_Div.style.visibility="Visible"
+MySQLstate = "False"
+ConnectorState = "False"
+DotNetState = "Flase"
+StoreNameState1 = "No Store Details Available"
+eziscaleState = ""
+eziscale45State = ""
+eziposState = ""
+objFileSerial = ""
+
+	''MySQL Check
+	On Error Resume Next
+	MySQLstate = objWMIService.Get("Win32_Service.Name='MySQL55'").State
+	On Error Goto 0
+	
+	''Connector Check
+	Const HKEY_LOCAL_MACHINE = &H80000002
+	
+	Set oReg=GetObject("winmgmts:{impersonationLevel=impersonate}!\\.\root\default:StdRegProv")
+	strKeyPath = "SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+	oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+	
+	On Error Resume Next
+	For Each subkey In arrSubKeys
+		keyname = ""
+		keyname = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey & "\DisplayName")
+		If keyname = "MySQL Connector Net 6.9.8" then
+			ConnectorState = "True"
+		End If
+	Next
+	On Error Goto 0
+	
+	''DotNet Check
+	strKeyPath = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
+	oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+	
+	On Error Resume Next
+	For Each subkey In arrSubKeys
+		keyname = ""
+		keyname = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\Release")
+		If keyname = "378389" then
+			DotNetState = "True"
+		Elseif keyname > "378389" then
+			DotNetState = "True 4.5+"
+		End If
+	Next
+	On Error Goto 0
+	
+	''ezi-scale Version Check
+	On Error Resume Next
+	eziscale45State = fso.GetFileVersion("C:\Program Files\GaP Solutions Pty Ltd\ShopEzi Scales\Ezi-Scale45.exe")
+	eziscale45State = fso.GetFileVersion("C:\Program Files (x86)\GaP Solutions Pty Ltd\ShopEzi Scales\Ezi-Scale45.exe")
+	eziscaleState = fso.GetFileVersion("C:\Program Files\GaP Solutions Pty Ltd\ShopEzi Scales\Ezi-Scale.exe")
+	eziscaleState = fso.GetFileVersion("C:\Program Files (x86)\GaP Solutions Pty Ltd\ShopEzi Scales\Ezi-Scale.exe")
+	eziposState = fso.GetFileVersion("C:\Program Files\GaP Solutions Pty Ltd\ezi-pos\ezi-pos.exe")
+	eziposState = fso.GetFileVersion("C:\Program Files (x86)\GaP Solutions Pty Ltd\ezi-pos\ezi-pos.exe")
+	On Error Goto 0
+	
+	''StoreName Check
+	If strMySQL = True Then
+		Set objFile2 = fso.CreateTextFile(strTools)
+		strLine = 	"select shortname from store where id=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
+		objFile2.WriteLine strLine
+		objFile2.Close
+		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+		set objFile3 = fso.OpenTextFile(strTools & "results",1)
+		StoreNameState1 = objFile3.readAll()	
+		
+		Set objFile2 = fso.CreateTextFile(strTools)
+		strLine2 = 	"select IFNULL(storename,'') from scalelabelcassette where storename not in ('');"
+		objFile2.WriteLine strLine2
+		objFile2.Close
+		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+		set objFile3 = fso.OpenTextFile(strTools & "results",1)
+		StoreNameState2 = objFile3.readAll()	
+	end if
+	
+	''SerialNo Check
+	On Error Resume Next
+	set objFileSerial = fso.OpenTextFile("c:\serialno.txt",1)
+		SerialState = objFileSerial.readAll()	
+	On Error Goto 0
+	
+	''Results
+	Msgbox	StoreNameState1  & vbCrLf &_
+			"MySQL 5.5:       " & MySQLstate & vbCrLf &_
+			"Connector 6.3.9: " & ConnectorState & vbCrLf &_
+			"DotNet 4.5:      " & DotNetState & vbCrLf &_
+			"ezi-scale:       " & eziscaleState & vbCrLf &_
+			"ezi-scale45:     " & eziscale45State & vbCrLf &_
+			"ezi-pos:         " & eziposState & vbCrLf &_
+			"SerialNo:        " & SerialState & vbCrLf &_
+			":: Alternative Store Name ::" & vbCrLf &_
+			StoreNameState2 & vbCrLf & vbCrLf &_
+			"CSV" & vbCrLf & date & "," & time & "," & StoreNameState1 & "," & MySQLstate & "," & ConnectorState & "," & DotNetState &_
+			"," & eziscaleState & "," & eziscale45State & "," & eziposState & "," & SerialState & "," & StoreNameState2
+			
+Blanket_Div.style.visibility="Hidden"
 End Sub
 
 Sub CMD
@@ -775,7 +888,7 @@ function Repair(){
 	<div id="Version_Div" class="Version_Div">
 		<a id="Help" style="font-size:18px; color:orange;" onClick="Help">Help!</a>
 		<br>
-		<a id="Checking" style="font-size:11px; text-align:right; color:#0099ff">checking version... </a><a style="font-size:11px;" onClick="CheckUpdate">Ver: <SPAN ID="AppVersion" style="font-size:11px;">0</SPAN></a>
+		<a id="Checking" style="font-size:11px; text-align:right; color:#0099ff">checking version... </a><a style="font-size:11px;" ondblclick="VersionDetail">Ver: <SPAN ID="AppVersion" style="font-size:11px;">0</SPAN></a>
 	</div>
 
  </body>
