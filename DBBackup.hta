@@ -160,6 +160,7 @@ Sub Window_OnLoad
 		strMySQLadmin = "echo"
 		strMySQLdump  = "echo"
 		strMySQLcheck = "echo"
+		document.getElementById("start").disabled=true
 		MsgBox "MySQL could not be found", , "Error!"
 	End If
 
@@ -172,9 +173,15 @@ Sub CheckMySQL1
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
 			DB1Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
 			
-			IF DNSResult = 0 Then
+			On Error Resume Next
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
+			On Error Goto 0
+			
+			IF strMySQL = "echo" Then
+				DB1Check.innerhtml = "??"
+				DB1Check.style.color = "Orange"
+			ElseIf	DNSResult = 0 Then
 				DB1Check.innerhtml = "OK"
 				DB1Check.style.color = "Green"
 			Else
@@ -187,9 +194,15 @@ Sub CheckMySQL2
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
 			DB2Check.style.color = "Orange"
-			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
 			
-			IF DNSResult = 0 Then
+			On Error Resume Next
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
+			On Error Goto 0
+			
+			IF strMySQL = "echo" Then
+				DB2Check.innerhtml = "??"
+				DB2Check.style.color = "Orange"
+			ElseIF DNSResult = 0 Then
 				DB2Check.innerhtml = "OK"
 				DB2Check.style.color = "Green"
 			Else
