@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.04.18" />
+  VERSION="2018.04.25" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -172,16 +172,14 @@ Sub CheckMySQL1
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
 			DB1Check.style.color = "Orange"
-			If strMySQL = True Then
-				DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
 			
-				IF DNSResult = 0 Then
-					DB1Check.innerhtml = "OK"
-					DB1Check.style.color = "Green"
-				Else
-					DB1Check.innerhtml = "??"
-					DB1Check.style.color = "Orange"
-				End If
+			IF DNSResult = 0 Then
+				DB1Check.innerhtml = "OK"
+				DB1Check.style.color = "Green"
+			Else
+				DB1Check.innerhtml = "??"
+				DB1Check.style.color = "Orange"
 			End If
 End Sub
 
@@ -189,16 +187,14 @@ Sub CheckMySQL2
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
 			DB2Check.style.color = "Orange"
-			If MySQLInstall = True Then
-				DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
-				On Error Goto 0
-				IF DNSResult = 0 Then
-					DB2Check.innerhtml = "OK"
-					DB2Check.style.color = "Green"
-				Else
-					DB2Check.innerhtml = "??"
-					DB2Check.style.color = "Orange"
-				End If
+			DNSResult = objShell.run (strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
+			
+			IF DNSResult = 0 Then
+				DB2Check.innerhtml = "OK"
+				DB2Check.style.color = "Green"
+			Else
+				DB2Check.innerhtml = "??"
+				DB2Check.style.color = "Orange"
 			End If
 End Sub
 
@@ -207,11 +203,11 @@ Sub start
 	
 	Set objFile = fso.CreateTextFile(strSQLUser)
 		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
-				  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
-				  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
-				  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES; " & _
-				  "CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
-				  '' "DROP DATABASE IF EXISTS " & Target_DB.Value & ";"
+				  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
+				  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
+				  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;" & _
+				  " CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
+				  '' " DROP DATABASE IF EXISTS " & Target_DB.Value & ";"
 	objFile.WriteLine strLine
 	objFile.Close
 
@@ -385,10 +381,10 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; " & _
-					  "GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION; " & _
-					  "GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION; " & _
-					  "SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
+			strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION;" & _
+					  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
+					  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
+					  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			
@@ -404,13 +400,15 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "SELECT CONCAT('ALTER TABLE ',TABLE_NAME,' ENGINE=InnoDB;') FROM INFORMATION_SCHEMA.TABLES WHERE ENGINE='MyISAM' AND table_schema = '" & Host_DB.Value & "' ;"
-			objFile2.WriteLine strLine
+			objFile2.WriteLine "SELECT CONCAT('ALTER TABLE " & Host_DB.Value & ".', TABLE_NAME,' ENGINE=InnoDB;') FROM INFORMATION_SCHEMA.TABLES WHERE ENGINE='MyISAM' AND table_schema = '" & Host_DB.Value & "' ;"
 			objFile2.Close
-
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >" & strTools & ".sql", 0, True
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
+			
+			objShell.Run "cmd /C echo -- ## List of tables to be converted to InnoDB ##>" & strTools & ".sql" , 0, True
+			objShell.Run "cmd /C echo -- >>" & strTools & ".sql" , 0, True
+			
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >>" & strTools & ".sql", 0, True
 			objShell.Run "notepad.exe " & strTools & ".sql", 1, False
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
 		Case vbNo
 		End Select
 	End If
@@ -421,20 +419,20 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "UPDATE PLU LEFT JOIN ( SELECT dc.* FROM DealCost dc INNER JOIN ( SELECT bdc.PLUG_UID, MIN(bdc.Cost / POWER(10, bdc.CostDecimals)) AS Cost " & _
-					  "FROM DealCost AS bdc WHERE bdc.Start<=NOW() AND bdc.End>NOW() GROUP BY bdc.PLUG_UID ) AS b ON b.Cost=(dc.Cost / POWER(10, dc.CostDecimals)) " & _
-					  "AND b.PLUG_UID=dc.PLUG_UID AND dc.Start<=NOW() AND dc.End>=NOW() ) AS dc ON PLU.G_UID=dc.PLUG_UID LEFT JOIN " & _
-					  "( SELECT c.Name, c.Description, c.EndDate, cp.PLUG_UID, cp.NewCost AS Cost, cp.NewCostDecimals AS CostDecimals FROM " & _
-					  "( SELECT cp.PLUG_UID, MIN(cp.NewPrice) AS NewPrice FROM Campaign c INNER JOIN CampaignStore cs ON c.ID=cs.CampaignID AND " & _
-					  "cs.StoreID=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0) INNER JOIN CampaignPLU cp " & _
-					  "ON c.ID=cp.CampaignID LEFT JOIN PLU p ON p.G_UID=cp.PLUG_UID AND p.StoreID=cs.StoreID WHERE c.CampaignType=1 AND c.Active=1 " & _
-					  "AND c.Deleted=0 AND c.StartDate<=NOW() AND c.EndDate>=NOW() GROUP BY cp.PLUG_UID) AS mcp INNER JOIN CampaignPLU cp ON " & _
-					  "mcp.PLUG_UID=cp.PLUG_UID AND cp.NewPrice=mcp.NewPrice INNER JOIN Campaign c ON c.ID=cp.CampaignID GROUP BY cp.PLUG_UID HAVING cp.NewCost>0) " & _
-					  "AS c ON c.PLUG_UID=PLU.G_UID SET PLU.CurrentCost = COALESCE(dc.Cost, c.Cost, 0), PLU.CurrentCostDecimals = " & _
-					  "COALESCE(dc.CostDecimals, c.CostDecimals, PLU.CostDecimals, 3), PLU.CurrentCostDesc = COALESCE(dc.Description, c.Description, 'Normal'), " & _
-					  "PLU.CurrentCostEnd = COALESCE(dc.End, c.EndDate), PLU.DealCostIdentifier = dc.Identifier, PLU.CurrentCostUpdated = NOW(), " & _
-					  "PLU.LastUpdatedByUser = 'support@gapsolutions.com.au' WHERE PLU.StoreID=IFNULL((select value from settings where Keyname='StoreID' and " & _
-					  "Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0)); "
+			strLine = "UPDATE PLU LEFT JOIN ( SELECT dc.* FROM DealCost dc INNER JOIN ( SELECT bdc.PLUG_UID, MIN(bdc.Cost / POWER(10, bdc.CostDecimals)) AS Cost" & _
+					  " FROM DealCost AS bdc WHERE bdc.Start<=NOW() AND bdc.End>NOW() GROUP BY bdc.PLUG_UID ) AS b ON b.Cost=(dc.Cost / POWER(10, dc.CostDecimals))" & _
+					  " AND b.PLUG_UID=dc.PLUG_UID AND dc.Start<=NOW() AND dc.End>=NOW() ) AS dc ON PLU.G_UID=dc.PLUG_UID LEFT JOIN" & _
+					  " ( SELECT c.Name, c.Description, c.EndDate, cp.PLUG_UID, cp.NewCost AS Cost, cp.NewCostDecimals AS CostDecimals FROM" & _
+					  " ( SELECT cp.PLUG_UID, MIN(cp.NewPrice) AS NewPrice FROM Campaign c INNER JOIN CampaignStore cs ON c.ID=cs.CampaignID AND" & _
+					  " cs.StoreID=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0) INNER JOIN CampaignPLU cp" & _
+					  " ON c.ID=cp.CampaignID LEFT JOIN PLU p ON p.G_UID=cp.PLUG_UID AND p.StoreID=cs.StoreID WHERE c.CampaignType=1 AND c.Active=1" & _
+					  " AND c.Deleted=0 AND c.StartDate<=NOW() AND c.EndDate>=NOW() GROUP BY cp.PLUG_UID) AS mcp INNER JOIN CampaignPLU cp ON" & _
+					  " mcp.PLUG_UID=cp.PLUG_UID AND cp.NewPrice=mcp.NewPrice INNER JOIN Campaign c ON c.ID=cp.CampaignID GROUP BY cp.PLUG_UID HAVING cp.NewCost>0)" & _
+					  " AS c ON c.PLUG_UID=PLU.G_UID SET PLU.CurrentCost = COALESCE(dc.Cost, c.Cost, 0), PLU.CurrentCostDecimals =" & _
+					  " COALESCE(dc.CostDecimals, c.CostDecimals, PLU.CostDecimals, 3), PLU.CurrentCostDesc = COALESCE(dc.Description, c.Description, 'Normal')," & _
+					  " PLU.CurrentCostEnd = COALESCE(dc.End, c.EndDate), PLU.DealCostIdentifier = dc.Identifier, PLU.CurrentCostUpdated = NOW()," & _
+					  " PLU.LastUpdatedByUser = 'support@gapsolutions.com.au' WHERE PLU.StoreID=IFNULL((select value from settings where Keyname='StoreID' and" & _
+					  " Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0));"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -449,7 +447,7 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings " & _
+			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings" & _
 					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
@@ -465,7 +463,7 @@ Sub Tools
 			ELSE
 				Set objFile2 = fso.CreateTextFile(strTools)
 				strLine = "DELETE FROM " & Host_DB.Value & ".checkoutsettings WHERE section='LastUpdate';" & _
-						  "SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
+						  " SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
 						  Host_DB.Value & _
 						  "' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
 				objFile2.WriteLine strLine
@@ -500,11 +498,11 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "INSERT INTO ModifyPlu ( PLU, PLUG_UID, ModifyOn, ModifiedUtc, ModifyWhat, NewPrice, NewCost ) " & _
-					  " SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu " & _
-					  " LEFT JOIN campaignplu ON plu.plu=campaignplu.plu " & _
-					  " WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND " & _ 
-					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0); "
+			strLine = "INSERT INTO ModifyPlu ( PLU, PLUG_UID, ModifyOn, ModifiedUtc, ModifyWhat, NewPrice, NewCost )" & _
+					  " SELECT plu.plu, plu.g_uid, CURDATE(), UTC_TIMESTAMP(),'4', plu.price, plu.cost FROM deliqs.plu" & _
+					  " LEFT JOIN campaignplu ON plu.plu=campaignplu.plu" & _
+					  " WHERE plu.deleted=0 AND plu.active=1 AND plu.sendtoscale=1 AND" & _ 
+					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -522,9 +520,7 @@ Sub Tools
 			Select Case result
 			Case vbYes
 				Set objFile2 = fso.CreateTextFile(strTools)
-				strLine = strMasterPluGUID & _
-						  "DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
-				objFile2.WriteLine strLine
+				objFile2.WriteLine strMasterPluGUID & " DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 				MsgBox "Delete Product by Master PLU_GUID Complete", , "Complete!"
@@ -539,12 +535,12 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW()); " & _
-						"DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
-						"DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
-						"DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
-						"DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); " & _
-						"DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader); "
+			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW());" & _
+						" DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						" DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						" DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						" DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						" DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -559,10 +555,7 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"TRUNCATE TABLE plu; " & _
-						"TRUNCATE TABLE plulocation; " & _
-						"TRUNCATE TABLE nutrifacts; "
-			objFile2.WriteLine strLine
+			objFile2.WriteLine "TRUNCATE TABLE plu; TRUNCATE TABLE plulocation; TRUNCATE TABLE nutrifacts;"
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Delete All Products Complete", , "Complete!"
@@ -576,25 +569,24 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY); " & _
-						"UPDATE dealcost SET updated=NOW(); " & _
-						"DELETE cpsa.* FROM campaignplustoreacceptance cpsa " & _
-							"LEFT JOIN campaign c ON c.id=cpsa.campaignid " & _
-							"WHERE c.campaigntype>0; " & _
-						"DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL; " & _
-						"DELETE c, cp, cs, cpg, cpp FROM campaign c " & _
-							"LEFT JOIN campaignplu cp ON c.id=cp.campaignid " & _
-							"LEFT JOIN campaignstore cs ON c.id=cs.campaignid " & _
-							"LEFT JOIN combopricegroup cpg ON c.id=cpg.CampaignID " & _
-							"LEFT JOIN combopriceplu cpp ON cpg.G_UID=cpp.GroupG_UID " & _
-							"LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid " & _
-							"WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH) " & _
-							"AND cpsa.id IS NULL; " & _
-						"DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL; " & _
-						"DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL; " & _
-						"DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR); " & _
-						"DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH); " & _
-						"TRUNCATE TABLE deliorderheader_h; "
+			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY);" & _
+						" UPDATE dealcost SET updated=NOW();" & _
+						" DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
+							" LEFT JOIN campaign c ON c.id=cpsa.campaignid" & _
+							" WHERE c.campaigntype>0;" & _
+						" DELETE FROM campaignplustoreacceptance WHERE appliedutc IS NOT NULL;" & _
+						" DELETE c, cp, cs, cpg, cpp FROM campaign c" & _
+							" LEFT JOIN campaignplu cp ON c.id=cp.campaignid" & _
+							" LEFT JOIN campaignstore cs ON c.id=cs.campaignid" & _
+							" LEFT JOIN combopricegroup cpg ON c.id=cpg.CampaignID" & _
+							" LEFT JOIN combopriceplu cpp ON cpg.G_UID=cpp.GroupG_UID" & _
+							" LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid" & _
+							" WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH) AND cpsa.id IS NULL;" & _
+						" DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
+						" DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
+						" DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
+						" DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH);" & _
+						" TRUNCATE TABLE deliorderheader_h;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -605,8 +597,7 @@ Sub Tools
 	
 	IF tools99.selectedIndex = 11 Then  '' Check Operator Logged In
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
-			objFile2.WriteLine strLine
+			objFile2.WriteLine "SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
 			
@@ -626,8 +617,7 @@ Sub Tools
 			Select Case result
 			Case vbYes
 				Set objFile2 = fso.CreateTextFile(strTools)
-				strLine = "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """; "
-				objFile2.WriteLine strLine
+				objFile2.WriteLine "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """; "
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 				MsgBox "Updating Store Name and Address Complete", , "Complete!"
