@@ -2,6 +2,7 @@
 
 ### Changes ###
 2018-04-26
+ +Better error handling when MySQL not found
  +Adjust SQL queries
  +Adjust MySQL database test
 
