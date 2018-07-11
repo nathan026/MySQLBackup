@@ -1,5 +1,4 @@
 <html>
- 
  <title>Lane Wizard | GaP Solutions pty. ltd.</title>
  <head>
  <HTA:APPLICATION
@@ -17,12 +16,12 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.04.17" />
+  VERSION="2018.07.11" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
- 
+
 <style>
- 
+
 BODY {
     background-color: #333333;
 	font-family: Verdana;
@@ -72,7 +71,7 @@ Sub Window_OnLoad
  	If Not IsAdmin( True ) Then
 		msgbox "Need permission to write file...", , "Warning!"
 	End If
-	
+
 	Set colIP = objWMIService.ExecQuery ("Select * From Win32_NetworkAdapterConfiguration Where IPEnabled = True")
 	Set colBIOS = objWMIService.ExecQuery ("Select * from Win32_BIOS")
 	Set colUSER = objWMIService.ExecQuery ("select * from Win32_useraccount")
@@ -139,7 +138,7 @@ End Sub
 Function IsAdmin( showMessage )
     Dim intRC
     Dim objUAC
-    
+
     IsAdmin = False
 
 	On Error Resume Next
@@ -147,7 +146,7 @@ Function IsAdmin( showMessage )
 	 intRC = objShell.Run( "cmd /C echo. > c:\windows\1.1", 7, True ) ' Check for Write Privileges to Windows folder
 	If Err Then intRC = 1
 	On Error Goto 0
-	
+
 	If intRC = 0 Then
 		IsAdmin = True
 	Else
@@ -176,7 +175,7 @@ Function IsAdmin( showMessage )
 		window.close True
 	End If
 End Function
-	
+
 Sub Start
  Set colComputers = objWMIService.ExecQuery ("Select * from Win32_ComputerSystem")
 	call PleaseWaitHide()
@@ -196,13 +195,23 @@ Sub Start
 	UAC.ShellExecute "tzutil.exe", "/s """ & timezone.Value & "", "", "runas", 1
 
 	''###### machine name
+	If mode(0).Checked Then 
+		MachineType = "Lane"
+
+	ElseIf mode(1).Checked Then 
+		MachineType = "Lane"
+
+	ElseIf mode(2).Checked Then 
+		MachineType = "ezi-scale"
+	End If
+
 	For Each objComputer in colComputers
 		If StoreCheckBox(2).Checked Then ''HFM
 			err = objComputer.Rename("HF_02" & Right("0" & StoreNo.Value, 2) & Right("00" & MachineNo.Value, 2))
 		ElseIf StoreCheckBox(1).Checked Then ''Drakes
-			err = objComputer.Rename(Right("000" & StoreNo.Value, 3) & "_Lane" & Right("00" & MachineNo.Value, 2))
+			err = objComputer.Rename(Right("000" & StoreNo.Value, 3) & "_" & MachineType & Right("00" & MachineNo.Value, 2))
 		ElseIf StoreCheckBox(0).Checked Then ''None
-			err = objComputer.Rename("Lane" & Right("00" & MachineNo.Value, 2))
+			err = objComputer.Rename(MachineType & Right("00" & MachineNo.Value, 2))
 		End If
 	Next
 
@@ -236,11 +245,16 @@ Sub Start
 		MsgBox("Please install correct version of L-POS...")
 	End If
 
+	''###### ezi-scale
+	If Mode(2).Checked Then
+		MsgBox("Please install latest version of ezi-scale...")
+	End If
+
 	''###### Delete Desktop Shortcut
 	If fso.FileExists("C:\Users\POS\Desktop\Lane Wizard.lnk") Then
 		fso.DeleteFile "C:\Users\POS\Desktop\Lane Wizard.lnk"
 	End If
-	
+
 	''###### Delete Startup Shortcut
 	If fso.FileExists("C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\Lane Wizard.lnk") Then
 		fso.DeleteFile "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\Lane Wizard.lnk"
@@ -278,20 +292,36 @@ Sub M_Down
 End Sub
 
 Sub StoreNoChange
+	If mode(0).Checked Then
+		MachineType = "Lane"
+		header.style.background="#B82601"
+		document.getElementById("heading").innerHTML = "GaP Solutions ezi-pos"
+
+	ElseIf mode(1).Checked Then
+		MachineType = "Lane"
+		header.style.background="#813772"
+		document.getElementById("heading").innerHTML = "Logivision L-POS"
+
+	ElseIf mode(2).Checked Then 
+		MachineType = "ezi-scale"
+		header.style.background="#01b81c"
+		document.getElementById("heading").innerHTML = "GaP Solutions ezi-scale"
+	End If
+
 	If StoreCheckBox(2).Checked Then ''HFM
-	StoreNo.Disabled = False 
+		StoreNo.Disabled = False 
 		StoreNoDiv.style.visibility="visible"
 		DataAreaMachineName.innerHTML = "HF_02" & Right("0" & StoreNo.Value, 2) & Right("00" & MachineNo.Value, 2)
-	
+
 	ElseIf StoreCheckBox(1).Checked Then ''Drakes
 		StoreNo.Disabled = False 
 		StoreNoDiv.style.visibility="visible"
-		DataAreaMachineName.innerHTML = Right("000" & StoreNo.Value, 3) & "_Lane" & Right("00" & MachineNo.Value, 2)
-	
+		DataAreaMachineName.innerHTML = Right("000" & StoreNo.Value, 3) & "_" & MachineType & Right("00" & MachineNo.Value, 2)
+
 	ElseIf StoreCheckBox(0).Checked Then ''None
 		StoreNo.Disabled = True
 		StoreNoDiv.style.visibility="hidden"
-		DataAreaMachineName.innerHTML = "Lane" & Right("00" & MachineNo.Value, 2)
+		DataAreaMachineName.innerHTML = MachineType & Right("00" & MachineNo.Value, 2)
 	End If
 	
 End Sub
@@ -303,21 +333,21 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 		strCurrentVer = Split( LaneWizard.Version )(0)
 		strUpdate = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/LW-version.txt?noone=" & timer ), 500)
 		strLatestVer  = LEFT(strUpdate,10)
-		
+
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
 			call PleaseWaitShow()
-	
+
 			If Not IsAdmin( True ) Then
 				msgbox "Need permission to write file...", , "Warning!"
 			End If
 
 			http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/LW.hta?noonce=" & timer, False
 			http_obj.send
-	
+
 			stream_obj.type = 1
 			stream_obj.open
 			stream_obj.write http_obj.responseBody
-			
+
 			stream_obj.savetofile self.location.pathname, 2
 			objShell.run """" & self.location.pathname & """"
 			Self.Close()
@@ -347,15 +377,6 @@ End Function
  function PleaseWaitShow() {
 	Blanket.style.visibility="hidden";
  }
- 
- function ezipos(){
-	header.style.background="#B82601";
-	document.getElementById("heading").innerHTML = "GaP Solutions ezi-pos"
- }
- function logivision() {
-	header.style.background="#813772";
-	document.getElementById("heading").innerHTML = "Logivision L-POS"
- }
 
  </script>
 
@@ -377,10 +398,12 @@ End Function
 	<p>
 	
 	<div id="main" align="center" style="width:100%; height:85%;">
-		<input type="Radio" checked="true" id="ezipos" name="mode" Value="1" onClick="ezipos()" />
+		<input type="Radio" checked="true" id="ezipos" name="mode" Value="1" onClick="StoreNoChange">
 			<label for="ezipos">ezi-pos</label>
-		<input type="Radio" id="logivision" name="Mode" Value="2" onClick="logivision()">
+		<input type="Radio" id="logivision" name="Mode" Value="2" onClick="StoreNoChange">
 			<label for="logivision">L-POS</label>
+		<input type="Radio" id="eziscale" name="Mode" Value="3" onClick="StoreNoChange">
+			<label for="eziscale">ezi-scale</label>
 		<p>
 		
 		<div id="Settings" style="visibility: visible; width:400px">
