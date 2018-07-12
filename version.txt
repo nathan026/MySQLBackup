@@ -1,6 +1,10 @@
-2018.04.25
+2018.07.12
 
 ### Changes ###
+2018-07-12
+ +Better Dealcost Cleanup
+ +Fix Flush Hosts command
+
 2018-04-26
  +Better error handling when MySQL not found
  +Adjust SQL queries
