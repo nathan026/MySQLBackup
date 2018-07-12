@@ -382,8 +382,8 @@ Sub Tools
 	Blanket_Div.style.visibility="visible"
 
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
-		objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -h " & Host_IP.Value & -e "flush hosts;", 0, True
-		objShell.Run "cmd /C " & strMySQLcheck & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
+		objShell.Run "cmd /c " & strMySQL & " -u gap -pgap -h " & Host_IP.Value & "-e """"flush hosts;""""", 0, True
+		objShell.Run "cmd /c " & strMySQLcheck & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
 		objShell.Run "notepad.exe %temp%\MySQLCheck.log", 1, False
 		MsgBox "Check and Repair Complete!", , "Complete!"
 	End If
