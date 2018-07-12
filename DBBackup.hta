@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.04.25" />
+  VERSION="2018.07.12" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -382,7 +382,7 @@ Sub Tools
 	Blanket_Div.style.visibility="visible"
 
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
-		objShell.Run "cmd /C " & strMySQLadmin & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " flush-hosts ", 0, True
+		objShell.Run "cmd /C " & strMySQL & " -u gap -pgap -h " & Host_IP.Value & -e "flush hosts;", 0, True
 		objShell.Run "cmd /C " & strMySQLcheck & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
 		objShell.Run "notepad.exe %temp%\MySQLCheck.log", 1, False
 		MsgBox "Check and Repair Complete!", , "Complete!"
@@ -582,7 +582,9 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM dealcost WHERE end<(CURDATE() - INTERVAL 7 DAY);" & _
+			strLine = 	"DELETE d.* FROM dealcost d" & _
+						" LEFT JOIN plu p ON p.g_uid=d.plug_uid" & _
+						" WHERE (d.end<(CURDATE() - INTERVAL 7 DAY) OR p.id is null);" & _
 						" UPDATE dealcost SET updated=NOW();" & _
 						" DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
 							" LEFT JOIN campaign c ON c.id=cpsa.campaignid" & _
