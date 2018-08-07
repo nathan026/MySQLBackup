@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.07.12" />
+  VERSION="2018.08.07" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -583,9 +583,8 @@ Sub Tools
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
 			strLine = 	"DELETE d.* FROM dealcost d" & _
-						" LEFT JOIN plu p ON p.g_uid=d.plug_uid" & _
-						" WHERE (d.end<(CURDATE() - INTERVAL 7 DAY) OR p.id is null);" & _
-						" UPDATE dealcost SET updated=NOW();" & _
+							" LEFT JOIN plu p ON p.g_uid=d.plug_uid" & _
+							" WHERE (d.end<(CURDATE() - INTERVAL 7 DAY) OR p.id is null);" & _
 						" DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
 							" LEFT JOIN campaign c ON c.id=cpsa.campaignid" & _
 							" WHERE c.campaigntype>0;" & _
@@ -600,8 +599,12 @@ Sub Tools
 						" DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
 						" DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
 						" DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
-						" DELETE FROM deliorderheader WHERE created<(CURDATE() - INTERVAL 1 MONTH);" & _
+						" DELETE  d.*, h.* FROM deliorderdetail d" & _
+							" LEFT JOIN deliorderheader h ON d.headerid=h.id" & _
+							" WHERE h.created<(CURDATE() - INTERVAL 14 DAY)" & _
+							" OR h.id is null;" & _
 						" TRUNCATE TABLE deliorderheader_h;"
+						" TRUNCATE TABLE deliorderdetail_h;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
