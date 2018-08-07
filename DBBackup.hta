@@ -603,7 +603,7 @@ Sub Tools
 							" LEFT JOIN deliorderheader h ON d.headerid=h.id" & _
 							" WHERE h.created<(CURDATE() - INTERVAL 14 DAY)" & _
 							" OR h.id is null;" & _
-						" TRUNCATE TABLE deliorderheader_h;"
+						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;"
 			objFile2.WriteLine strLine
 			objFile2.Close
