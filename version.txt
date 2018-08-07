@@ -1,6 +1,9 @@
 2018.07.12
 
 ### Changes ###
+2018-08-07
+ +Better DeliOrder Cleanup
+ 
 2018-07-12
  +Better Dealcost Cleanup
  +Fix Flush Hosts command
