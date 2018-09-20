@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.08.07" />
+  VERSION="2018.09.20" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -475,10 +475,12 @@ Sub Tools
 				MsgBox "This database is a Master. Cannot reset database."
 			ELSE
 				Set objFile2 = fso.CreateTextFile(strTools)
-				strLine = "DELETE FROM " & Host_DB.Value & ".checkoutsettings WHERE section='LastUpdate';" & _
-						  " SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
-						  Host_DB.Value & _
-						  "' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');"
+				strLine =	"SET FOREIGN_KEY_CHECKS = 0;" & _
+							" DELETE FROM " & Host_DB.Value & ".checkoutsettings WHERE section='LastUpdate';" & _
+							" SELECT CONCAT('TRUNCATE TABLE " & Host_DB.Value & ".',TABLE_NAME,';') FROM INFORMATION_SCHEMA.TABLES WHERE table_schema = '" & _
+							Host_DB.Value & _
+							"' AND TABLE_TYPE='BASE TABLE' AND TABLE_NAME NOT IN ('checkoutsettings','rsaleheader','rsaledetail','saleheader','saledetail','salepayment','eftreceipt');" & _
+							" SET FOREIGN_KEY_CHECKS = 1;"
 				objFile2.WriteLine strLine
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
@@ -548,12 +550,14 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW());" & _
+			strLine = 	"SET FOREIGN_KEY_CHECKS = 0;" & _
+						" DELETE FROM rsaleheader  WHERE trantype NOT IN ('16','36') AND DATE(createdlocal)<>DATE(NOW());" & _
 						" DELETE FROM rsaledetail  WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
 						" DELETE FROM rsalepayment WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
 						" DELETE FROM rcampaignhit WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
 						" DELETE FROM reftreceipt WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
-						" DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);"
+						" DELETE FROM rsalefuel WHERE saleheaderid NOT IN (select saleheaderid from rsaleheader);" & _
+						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
@@ -568,7 +572,12 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			objFile2.WriteLine "TRUNCATE TABLE plu; TRUNCATE TABLE plulocation; TRUNCATE TABLE nutrifacts;"
+			strLine = 	"SET FOREIGN_KEY_CHECKS = 0;" & _
+						" TRUNCATE TABLE plu;" & _
+						" TRUNCATE TABLE plulocation;" & _
+						" TRUNCATE TABLE nutrifacts;" & _
+						" SET FOREIGN_KEY_CHECKS = 1;"
+			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
 			MsgBox "Delete All Products Complete", , "Complete!"
@@ -582,7 +591,8 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = 	"DELETE d.* FROM dealcost d" & _
+			strLine = 	"SET FOREIGN_KEY_CHECKS = 0;" & _
+						" DELETE d.* FROM dealcost d" & _
 							" LEFT JOIN plu p ON p.g_uid=d.plug_uid" & _
 							" WHERE (d.end<(CURDATE() - INTERVAL 7 DAY) OR p.id is null);" & _
 						" DELETE cpsa.* FROM campaignplustoreacceptance cpsa" & _
@@ -604,7 +614,8 @@ Sub Tools
 							" WHERE h.created<(CURDATE() - INTERVAL 14 DAY)" & _
 							" OR h.id is null;" & _
 						" TRUNCATE TABLE deliorderheader_h;" & _
-						" TRUNCATE TABLE deliorderdetail_h;"
+						" TRUNCATE TABLE deliorderdetail_h;" & _
+						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
