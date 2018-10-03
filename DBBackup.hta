@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.09.20" />
+  VERSION="2018.10.04" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -615,6 +615,7 @@ Sub Tools
 							" OR h.id is null;" & _
 						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;" & _
+						" TRUNCATE TABLE plupricehistory;" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
@@ -655,8 +656,16 @@ Sub Tools
 		End If
 	End If
 	
-	IF tools99.selectedIndex = 13 Then  '' Test
-			
+	IF tools99.selectedIndex = 13 Then  '' List Table Sizes in database
+						Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"SELECT table_name, round(((data_length + index_length) / 1024 / 1024), 2) `Size in MB`" & _
+						" FROM information_schema.TABLES" & _
+						" WHERE table_schema = '" & Host_DB.Value & "'"& _
+						" ORDER BY (data_length + index_length) DESC;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+			objShell.Run "notepad.exe " & strTools & "results", 1, False
 	End If
 
 	If safetybackup.Checked then	'' Safety Backup Checked? Show Backup...
@@ -889,6 +898,7 @@ function Repair(){
 				<option value="11">11. Cleanup Old Data</option>
 				<option value="12">12. Check Lane Status</option>
 				<option value="13">13. Update Store Name & Address</option>
+				<option value="14">14. List Database Table Sizes</option>
 			</select>
 
 		<br>
