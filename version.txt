@@ -1,6 +1,10 @@
-2018.09.20
+2018.10.04
 
 ### Changes ###
+2018-10-03
+ +Add "List Database Table Size" option to tools
+ +Add another table to be cleaned up
+
 2018-09-20
  +Disable/Reenable FK checks on SQL Queries
 
