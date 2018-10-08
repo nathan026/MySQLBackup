@@ -1,6 +1,9 @@
-2018.10.04
+2018.10.08
 
 ### Changes ###
+2018-10-08
+ +Add cleanup old price changes to cleanup old data option
+ 
 2018-10-03
  +Add "List Database Table Size" option to tools
  +Add another table to be cleaned up
