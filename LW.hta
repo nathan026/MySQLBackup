@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.07.11" />
+  VERSION="2018.10.23" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -311,16 +311,25 @@ Sub StoreNoChange
 	If StoreCheckBox(2).Checked Then ''HFM
 		StoreNo.Disabled = False 
 		StoreNoDiv.style.visibility="visible"
+		TeamviewerDRAKE.style.visibility="hidden"
+		TeamviewerHFM.style.visibility="visible"
+		Teamviewer.style.visibility="hidden"
 		DataAreaMachineName.innerHTML = "HF_02" & Right("0" & StoreNo.Value, 2) & Right("00" & MachineNo.Value, 2)
 
 	ElseIf StoreCheckBox(1).Checked Then ''Drakes
 		StoreNo.Disabled = False 
 		StoreNoDiv.style.visibility="visible"
+		TeamviewerDRAKE.style.visibility="visible"
+		TeamviewerHFM.style.visibility="hidden"
+		Teamviewer.style.visibility="Hidden"
 		DataAreaMachineName.innerHTML = Right("000" & StoreNo.Value, 3) & "_" & MachineType & Right("00" & MachineNo.Value, 2)
 
 	ElseIf StoreCheckBox(0).Checked Then ''None
 		StoreNo.Disabled = True
 		StoreNoDiv.style.visibility="hidden"
+		TeamviewerDRAKE.style.visibility="hidden"
+		TeamviewerHFM.style.visibility="hidden"
+		Teamviewer.style.visibility="visible"
 		DataAreaMachineName.innerHTML = MachineType & Right("00" & MachineNo.Value, 2)
 	End If
 	
@@ -462,6 +471,8 @@ End Function
 	<div id="Footer" style="background-color:062F4F; color:#dfe4e6; bottom:0px; height:5%; font-size:20px;  position:absolute; width:100%;">
 	GaP Solutions Pty. Ltd.<br>
 	<a style="font-size:11px; color:#dfe4e6;">www.gapsolutions.com.au</a>
+	<button type="button" id="TeamviewerDRAKE" name="TeamViewerDRAKE" style="Visibility:Hidden; position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapsupportDrakes'">Click here to <br>Get TeamViewer</button>
+	<button type="button" id="TeamviewerHFM" name="TeamViewerHFM" style="Visibility:Hidden; position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapsupportHFM'">Click here to <br>Get TeamViewer</button>
 	<button type="button" id="Teamviewer" name="TeamViewer" style="position:absolute; bottom:0px; right:0px; height:100%; width:40%; font-size:20px; border:none; color:white; background-color:#0883d5;" onClick="location.href='http://get.teamviewer.com/gapsupport'">Click here to <br>Get TeamViewer</button>
 	</div>
  </body>
