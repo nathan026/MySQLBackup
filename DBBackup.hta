@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.10.09" />
+  VERSION="2018.10.24" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -71,6 +71,7 @@ div.Header_Div {
 	background-color:#329f50;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 	color: White;
+	overflow: hidden;
 	}
 
 div.Footer_Div {
@@ -143,17 +144,20 @@ Sub Window_OnLoad
 	On Error Goto 0
 
 	If fso.FileExists("C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
-		strMySQL      = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe"""
-		strMySQLadmin = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
-		strMySQLdump  = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
-		strMySQLcheck = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+		objShell.CurrentDirectory = "C:\Program Files\MySQL\MySQL Server 5.5\bin\"
+		strMySQL      = "mysql.exe"
+		strMySQLadmin = "mysqladmin.exe"
+		strMySQLdump  = "mysqldump.exe"
+		strMySQLcheck = "mysqlcheck.exe"
 		MySQLInstall = True
 
 	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
-		strMySQL      = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
-		strMySQLadmin = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqladmin.exe"""
-		strMySQLdump  = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
-		strMySQLcheck = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
+		objShell.CurrentDirectory = "C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\"
+		strMySQL      = "mysql.exe"
+		strMySQLadmin = "mysqladmin.exe"
+		strMySQLdump  = "mysqldump.exe"
+		strMySQLcheck = "mysqlcheck.exe"
+		''strMySQL      = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
 		MySQLInstall = True
 	Else
 		strMySQL      = "echo"
@@ -220,7 +224,6 @@ Sub start
 				  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
 				  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;" & _
 				  " CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
-				  '' " DROP DATABASE IF EXISTS " & Target_DB.Value & ";"
 	objFile.WriteLine strLine
 	objFile.Close
 
@@ -237,7 +240,7 @@ Sub start
 		IF Not strBackupName ="" Then
 			objShell.Run strMySQLdump &_
 			" --user=gap -pgap --host=" & Host_IP.Value &_
-			" --add-drop-database --hex-blob=TRUE --force --databases " & Host_DB.Value & " -r """ & strBackup & "\" & strBackupName & ".sql" & "", 0, True
+			" --hex-blob=TRUE --force " & Host_DB.Value & " -r " & DQ(strBackup & "\" & strBackupName & ".sql"), 0, True
 
 			If Not safetybackup.Checked then	'' Safety Backup Checked? Take Backup...
 				MsgBox "Backup Complete!", , "Complete!"
@@ -250,16 +253,16 @@ Sub start
 		If fLocation.Value ="" Then
 			MsgBox "No File Selected!", , "Error!"
 		Else
-			objShell.Run "cmd /C """ & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
-			objShell.Run "cmd /C """ & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & chr(34) & fLocation.Value & chr(34), 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & DQ(strSQLUser), 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & DQ(fLocation.Value), 0, True
 			MsgBox "Restore Complete!", , "Complete!"
 		End If
 	End If
 
 	If mode(2).Checked Then ''MIGRATE
-		objShell.Run strMySQLdump & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -r " & strSQLFile, 0, True
-		objShell.Run "cmd /C """ & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & chr(34) & strSQLUser & chr(34), 0, True
-		objShell.Run "cmd /C """ & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " " & Target_DB.Value & " < " & chr(34) & strSQLFile & chr(34), 0, True
+		objShell.Run strMySQLdump & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " -f -r " & DQ(strSQLFile), 0, True
+		objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & DQ(strSQLUser), 0, True
+		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Target_IP.Value & " " & Target_DB.Value & " < " & DQ(strSQLFile), 0, True
 		MsgBox "Migration Complete!", , "Complete!"
     End If
 
@@ -315,7 +318,7 @@ Sub Download ''DOWNLOAD UPDATE
 		stream_obj.open
 		stream_obj.write http_obj.responseBody
 		stream_obj.savetofile self.location.pathname, 2
-		objShell.run """" & self.location.pathname & """"
+		objShell.run DQ(self.location.pathname)
 		Self.Close()
 	Blanket_Div.style.visibility="Hidden"
 End Sub
@@ -376,6 +379,20 @@ Function IsAdmin( showMessage )
 	End If
 End Function
 
+'-----------------------------------------------------------------------------------------
+'Name  : DQ   -> Place double quotes around a string and replace double quotes
+'   :    -> within the string with pairs of double quotes.
+'Parameters : stringValue -> String value to be double quoted
+'Return  : DQ   -> Double quoted string.
+'-----------------------------------------------------------------------------------------
+Function DQ(ByVal stringValue)
+ If stringValue <> "" Then
+  DQ = """" & Replace(stringValue, """", """""") & """"
+ Else
+  DQ = """"""
+ End If
+End Function
+'-----------------------------------------------------------------------------------------
 
 ''TOOLS
 Sub Tools
@@ -400,8 +417,8 @@ Sub Tools
 					  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			
-			objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & strTools, 0, True
+
+			objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & DQ(strTools), 0, True
 			MsgBox "gap database users created!", , "Complete!"
 		Case vbNo
 		End Select
@@ -416,12 +433,12 @@ Sub Tools
 			objFile2.WriteLine "SELECT CONCAT('ALTER TABLE " & Host_DB.Value & ".', TABLE_NAME,' ENGINE=InnoDB;') FROM INFORMATION_SCHEMA.TABLES WHERE ENGINE='MyISAM' AND table_schema = '" & Host_DB.Value & "' ;"
 			objFile2.Close
 			
-			objShell.Run "cmd /C echo -- ## List of tables to be converted to InnoDB ##>" & strTools & ".sql" , 0, True
-			objShell.Run "cmd /C echo -- >>" & strTools & ".sql" , 0, True
+			objShell.Run "cmd /C echo -- ## List of tables to be converted to InnoDB ##>" & DQ(strTools & ".sql"), 0, True
+			objShell.Run "cmd /C echo -- >>" & DQ(strTools & ".sql"), 0, True
 			
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " < " & strTools & " >>" & strTools & ".sql", 0, True
-			objShell.Run "notepad.exe " & strTools & ".sql", 1, False
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & strTools & ".sql", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " < " & DQ(strTools) & " >>" & DQ(strTools & ".sql"), 0, True
+			objShell.Run "notepad.exe " & DQ(strTools & ".sql"), 1, False
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value &" < " & DQ(strTools & ".sql"), 0, True
 		Case vbNo
 		End Select
 	End If
@@ -448,7 +465,7 @@ Sub Tools
 					  " Section='General'),0) AND (PLU.CurrentCost IS NULL OR PLU.CurrentCost<>COALESCE(dc.Cost, c.Cost, 0));"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "Current Costs have been updated!", , "Complete!"
 		Case vbNo
 		End Select
@@ -464,7 +481,7 @@ Sub Tools
 					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "mastercheck", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "mastercheck"), 0, True
 
 			Set objMaster = fso.OpenTextFile (strTools & "mastercheck", 1)
 			Do Until objMaster.AtEndOfStream
@@ -483,8 +500,8 @@ Sub Tools
 							" SET FOREIGN_KEY_CHECKS = 1;"
 				objFile2.WriteLine strLine
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & " >" & strTools & "refresh", 0, True
-				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & strTools & "refresh", 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & DQ(strTools) & " >" & DQ(strTools & "refresh"), 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value &  " < " & DQ(strTools & "refresh"), 0, True
 				MsgBox "Reset Database Complete", , "Complete!"
 			END IF
 
@@ -501,7 +518,7 @@ Sub Tools
 			strLine = "UPDATE operator SET locked=0, loggedin=0;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "All Operators Unlocked", , "Complete!"
 		Case vbNo
 		End Select
@@ -520,7 +537,7 @@ Sub Tools
 					  " plu.storeid=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "Products flaged to send", , "Complete!"
 		Case vbNo
 		End Select
@@ -537,7 +554,7 @@ Sub Tools
 				Set objFile2 = fso.CreateTextFile(strTools)
 				objFile2.WriteLine strMasterPluGUID & " DELETE FROM PLU WHERE masterplug_uid=@MasterPluG_UID;"
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 				MsgBox "Delete Product by Master PLU_GUID Complete", , "Complete!"
 			Case vbNo
 			End Select
@@ -560,7 +577,7 @@ Sub Tools
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "Remove Orphaned Sales Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -579,7 +596,7 @@ Sub Tools
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "Delete All Products Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -624,7 +641,7 @@ Sub Tools
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 			MsgBox "Cleanup Old Data Complete", , "Complete!"
 		Case vbNo
 		End Select
@@ -634,7 +651,7 @@ Sub Tools
 			Set objFile2 = fso.CreateTextFile(strTools)
 			objFile2.WriteLine "SELECT ShortName, LastUsedIP FROM operator WHERE LoggedIn=1;"
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "results"), 0, True
 			
 			set objFile3 = fso.OpenTextFile(strTools & "results",1)
 			tempdata = objFile3.readAll()
@@ -654,7 +671,7 @@ Sub Tools
 				Set objFile2 = fso.CreateTextFile(strTools)
 				objFile2.WriteLine "UPDATE scalelabelcassette SET StoreName=""" & strStoreName & """, StoreAddress=""" & strStoreAddress & """; "
 				objFile2.Close
-				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools, 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
 				MsgBox "Updating Store Name and Address Complete", , "Complete!"
 			Case vbNo
 			End Select
@@ -669,8 +686,33 @@ Sub Tools
 						" ORDER BY (data_length + index_length) DESC;"
 			objFile2.WriteLine strLine
 			objFile2.Close
-			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
-			objShell.Run "notepad.exe " & strTools & "results", 1, False
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "results"), 0, True
+			objShell.Run "notepad.exe " & DQ(strTools & "results"), 1, False
+	End If
+	
+	IF tools99.selectedIndex = 14 Then  '' Delete Duplicate Sale
+	strSaleIdentifier = InputBox("Sale Identifier...")
+			
+			IF Not strSaleIdentifier="" Then
+			result = MsgBox("Sale Identifier: " & strSaleIdentifier & vbCrLf &_
+							 vbCrLf & "Do you want to continue?", vbYesNo, "Delete Duplicate Sale")
+
+			Select Case result
+			Case vbYes
+				Set objFile2 = fso.CreateTextFile(strTools)
+				objFile2.WriteLine	"SET @SaleID = (SELECT saleheaderid, count(*) c" & _
+									" FROM saleheader WHERE saleidentifier='" & strSaleIdentifier & "' GROUP BY saleidentifier HAVING c > 1);" & _
+									"DELETE FROM saleheader  WHERE saleheaderid=@SaleID;" & _
+									"DELETE FROM saledetail  WHERE saleheaderid=@SaleID;" & _
+									"DELETE FROM salepayment WHERE saleheaderid=@SaleID;" & _
+									"DELETE FROM eftreceipt  WHERE saleheaderid=@SaleID;" & _
+									"DELETE FROM campaignhit WHERE saleheaderid=@SaleID;"
+				objFile2.Close
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
+				MsgBox "Deleting Duplicate Sale", , "Complete!"
+			Case vbNo
+			End Select
+		End If
 	End If
 
 	If safetybackup.Checked then	'' Safety Backup Checked? Show Backup...
@@ -745,7 +787,7 @@ objFileSerial = ""
 		strLine = 	"select shortname from store where id=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 		objFile2.WriteLine strLine
 		objFile2.Close
-		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "results"), 0, True
 		set objFile3 = fso.OpenTextFile(strTools & "results",1)
 		StoreNameState1 = objFile3.readAll()	
 		
@@ -753,7 +795,7 @@ objFileSerial = ""
 		strLine2 = 	"select IFNULL(storename,'') from scalelabelcassette where storename not in ('');"
 		objFile2.WriteLine strLine2
 		objFile2.Close
-		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & strTools & " >" & strTools & "results", 0, True
+		objShell.Run "cmd /C " & strMySQL & " --user=gap -pgap -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "results"), 0, True
 		set objFile3 = fso.OpenTextFile(strTools & "results",1)
 		StoreNameState2 = objFile3.readAll()	
 	end if
@@ -904,6 +946,7 @@ function Repair(){
 				<option value="12">12. Check Lane Status</option>
 				<option value="13">13. Update Store Name & Address</option>
 				<option value="14">14. List Database Table Sizes</option>
+				<option value="15">15. Delete Duplicate Sale</option>
 			</select>
 
 		<br>
