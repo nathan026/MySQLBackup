@@ -1,6 +1,10 @@
-2018.10.09
+2018.10.24
 
 ### Changes ###
+2018-10-24
+ +Add support for windows users with spaces in the directories
+ +Remove database name from Backup files to fix Restore function
+
 2018-10-08
  +Add cleanup old price changes to cleanup old data option
  
