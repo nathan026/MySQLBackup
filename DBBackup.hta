@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.10.24" />
+  VERSION="2018.10.25" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -157,7 +157,6 @@ Sub Window_OnLoad
 		strMySQLadmin = "mysqladmin.exe"
 		strMySQLdump  = "mysqldump.exe"
 		strMySQLcheck = "mysqlcheck.exe"
-		''strMySQL      = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
 		MySQLInstall = True
 	Else
 		strMySQL      = "echo"
@@ -169,16 +168,19 @@ Sub Window_OnLoad
 	End If
 
 	setTimeout "CheckUpdate", 100, "VBScript"
-	strPassword = "gap"
-	'' strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
-	call CheckMySQL1()
 	
+	'-----------------------------------------------------------------------------------------
+	'' strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
+	strPassword = "gap"
+	'-----------------------------------------------------------------------------------------
+	
+	call CheckMySQL1()
 End Sub
 
 Sub CheckMySQL1
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
-			DB1Check.style.color = "Orange"
+			DB1Check.style.color = "Yellow"
 			
 			On Error Resume Next
 			DNSResult = objShell.run (strMySQL & " --user=gap -p" & strPassword & " -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
@@ -189,7 +191,7 @@ Sub CheckMySQL1
 				DB1Check.style.color = "Orange"
 			ElseIf	DNSResult = 0 Then
 				DB1Check.innerhtml = "OK"
-				DB1Check.style.color = "Green"
+				DB1Check.style.color = "LightBlue"
 			Else
 				DB1Check.innerhtml = "??"
 				DB1Check.style.color = "Orange"
@@ -199,7 +201,7 @@ End Sub
 Sub CheckMySQL2
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
-			DB2Check.style.color = "Orange"
+			DB2Check.style.color = "Yellow"
 			
 			On Error Resume Next
 			DNSResult = objShell.run (strMySQL & " --user=gap -p" & strPassword & " -h " & Target_IP.Value & " -e ""select '1';""", 0, True)
@@ -210,7 +212,7 @@ Sub CheckMySQL2
 				DB2Check.style.color = "Orange"
 			ElseIF DNSResult = 0 Then
 				DB2Check.innerhtml = "OK"
-				DB2Check.style.color = "Green"
+				DB2Check.style.color = "LightBlue"
 			Else
 				DB2Check.innerhtml = "??"
 				DB2Check.style.color = "Orange"
@@ -826,7 +828,7 @@ Blanket_Div.style.visibility="Hidden"
 End Sub
 
 Sub CMD
-			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -p" & strPassword & Host_DB.Value, 1, False
+			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -p" & strPassword & " -h " & Host_DB.Value, 1, False
 End Sub
 
 </script>
