@@ -828,7 +828,7 @@ Blanket_Div.style.visibility="Hidden"
 End Sub
 
 Sub CMD
-			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -p" & strPassword & " -h " & Host_DB.Value, 1, False
+			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -p" & strPassword & "  " & Host_DB.Value, 1, False
 End Sub
 
 </script>
