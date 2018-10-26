@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.10.25" />
+  VERSION="2018.10.26" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -628,10 +628,19 @@ Sub Tools
 							" LEFT JOIN campaignplustoreacceptance cpsa ON c.id=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid" & _
 							" WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH) AND cpsa.id IS NULL;" & _
 						" UPDATE campaign c1" & _
-						" LEFT JOIN (SELECT count(*) c, campaignid FROM campaignplu GROUP BY campaignid) cp ON cp.campaignid=c1.id" & _
-						" SET c1.updated=now()" & _
-						" WHERE (cp.c=0 OR cp.c IS null) AND c1.campaigntype=0" & _
-						" AND startdate>(CURDATE() - INTERVAL 30 DAY);" & _
+							" LEFT JOIN (SELECT count(*) c, campaignid FROM campaignplu GROUP BY campaignid) cp ON cp.campaignid=c1.id" & _
+							" SET c1.updated=now(), active=0" & _
+							" WHERE (cp.c=0 OR cp.c IS null) AND c1.campaigntype=0" & _
+							" AND startdate<DATE_SUB(CURDATE(), INTERVAL 1 DAY);" & _
+						" UPDARE campaign c" & _
+							" LEFT JOIN (" & _
+							" SELECT cpsa.campaignid FROM campaignplustoreacceptance cpsa" & _
+							" LEFT JOIN campaignplu cp ON cp.campaignid=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid" & _
+							" WHERE AcceptedUtc IS NOT null AND appliedutc IS null AND cp.id IS NOT null" & _
+							" ) AS c1 ON c1.campaignid=c.id" & _
+							" SET c.active=0, c.updated=now()" & _
+							" WHERE c1.campaignid IS NOT null" & _
+							" AND c.startdate<DATE_SUB(CURDATE(), INTERVAL 1 DAY);" & _
 						" DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
 						" DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
 						" DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
