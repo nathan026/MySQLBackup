@@ -1,6 +1,9 @@
-2018.10.25
+2018.10.26
 
 ### Changes ###
+2018-10-26
+ +Add more cleanup queries
+
 2018-10-24
  +Add support for windows users with spaces in the directories
  +Remove database name from Backup files to fix Restore function
