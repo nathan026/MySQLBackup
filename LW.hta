@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.10.23" />
+  VERSION="2018.11.08" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -217,8 +217,16 @@ Sub Start
 
 	''###### ezipos
     If mode(0).Checked Then 
-		fso.CopyFile "c:\support\ezi-POS.lnk", "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\"
-		MsgBox("Please install latest version of ezi-pos...")
+		Set lnk = objShell.CreateShortcut("C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\ezi-POS.lnk")
+		lnk.TargetPath = "C:\Program Files (x86)\GaP Solutions Pty Ltd\ezi-POS\ezi-POS.exe"
+		If fso.FileExists("C:\Program Files\GaP Solutions Pty Ltd\ezi-POS\ezi-POS.exe") Then
+			lnk.TargetPath = "C:\Program Files\GaP Solutions Pty Ltd\ezi-POS\ezi-POS.exe"
+		End If
+		lnk.Description = "ezi-POS"
+		lnk.Save
+		'Clean up 
+		Set lnk = Nothing
+		MsgBox("ezi-pos not installed, Please install latest version of ezi-pos...")
     End If
 
 	''###### logivision
