@@ -1,6 +1,9 @@
-2018.10.26
+2018.11.26
 
 ### Changes ###
+2018-11-26
+ +Adjust cleanup queries to remove stuck price change campaigns
+ 
 2018-10-26
  +Add more cleanup queries
 
