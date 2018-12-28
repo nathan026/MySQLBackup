@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.11.08" />
+  VERSION="2018.12.27" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -370,6 +370,23 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 			Self.Close()
 			call PleaseWaitHide()
 		End If
+End Sub
+
+Sub Download ''DOWNLOAD DBBackup UPDATE
+	Blanket_Div.style.visibility="visible"
+	
+	If Not IsAdmin( True ) Then
+		msgbox "Need permission to write file...", , "Warning!"
+	End If
+
+		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
+		http_obj.send
+
+		stream_obj.type = 1
+		stream_obj.open
+		stream_obj.write http_obj.responseBody
+		stream_obj.savetofile "C:\Support\DBBackup.hta", 2
+	Blanket_Div.style.visibility="Hidden"
 End Sub
 
 Function TextFromHTML( myURL )
