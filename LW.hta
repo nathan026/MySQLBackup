@@ -132,6 +132,7 @@ Sub Window_OnLoad
 
 
 	setTimeout "CheckUpdate", 100, "VBScript"
+	setTimeout "Download", 200, "VBScript"
 End Sub
 
 
@@ -178,7 +179,7 @@ End Function
 
 Sub Start
  Set colComputers = objWMIService.ExecQuery ("Select * from Win32_ComputerSystem")
-	call PleaseWaitHide()
+	Blanket_Div.style.visibility="hidden"
 	
 	''###### serial Number
 	If fso.FileExists("c:\Serialno.txt") Then
@@ -276,7 +277,7 @@ Sub Start
 			objShell.Run "shutdown.exe /R /T 5 /C ""Rebooting now!"" "
 		Case vbNo
 		End Select
-	call PleaseWaitShow()
+	Blanket_Div.style.visibility="visible"
 End Sub
 
 Sub S_Up
@@ -352,7 +353,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 		strLatestVer  = LEFT(strUpdate,10)
 
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
-			call PleaseWaitShow()
+			Blanket_Div.style.visibility="visible"
 
 			If Not IsAdmin( True ) Then
 				msgbox "Need permission to write file...", , "Warning!"
@@ -368,7 +369,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 			stream_obj.savetofile self.location.pathname, 2
 			objShell.run """" & self.location.pathname & """"
 			Self.Close()
-			call PleaseWaitHide()
+			Blanket_Div.style.visibility="hidden"
 		End If
 End Sub
 
@@ -405,18 +406,12 @@ End Function
 
 </script>
  <script language="javascript">
- function PleaseWaitHide() {
-	Blanket.style.visibility="visible";
- }
- function PleaseWaitShow() {
-	Blanket.style.visibility="hidden";
- }
 
  </script>
 
 <body align="center">
 
-	<div id="Blanket" style="Background:Black; filter:alpha(opacity=80); opacity:0.2; z-index:9999; height:100%; width:100%; position:absolute; visibility:hidden; text-align:center; line-height: 600px;">
+	<div id="Blanket_div" style="Background:Black; filter:alpha(opacity=80); opacity:0.2; z-index:9999; height:100%; width:100%; position:absolute; visibility:hidden; text-align:center; line-height: 600px;">
 		<span style="font-size:50px;display: inline-block; vertical-align: middle;">Please Wait...</span>
 		<br>
 		<span id="DataArea"></span><br>
