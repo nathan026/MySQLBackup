@@ -174,7 +174,9 @@ Sub Window_OnLoad
 End Sub
 
 Sub Password
+	Blanket_Div.style.visibility="visible"
 	 strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
+	Blanket_Div.style.visibility="hidden"
 End Sub
 
 Sub CheckMySQL1
