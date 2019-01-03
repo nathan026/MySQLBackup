@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.12.27" />
+  VERSION="2019.01.03" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -50,7 +50,7 @@ div.Blanket_Div {
 window.resizeTo 500,550
 window.moveTo (screen.Width - 500)/2, ((screen.Height - 550)/2)-20
 
-Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj, objShell, strUpdate
+Dim fso, tempfile, tfolder, strMySQL, strSQLUser, strPassword, strSQLFile, strBackup, strMySQLdump, strMySQLcheck, strAppVer, loaded, http_obj, stream_obj, objShell, strUpdate
 Dim strCommandLine, strHTA
 
 Const TemporaryFolder = 2
@@ -119,17 +119,33 @@ Sub Window_OnLoad
 	DataArea.innerHTML = strHTML
 
 	If fso.FileExists("C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
-		strMySQL = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysql.exe"""
-		strMySQLdump = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
-		strMySQLcheck = """C:\Program Files\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
-	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
-		strMySQL = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe"""
-		strMySQLdump = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqldump.exe"""
-		strMySQLcheck = """C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysqlcheck.exe"""
-	else
-		MsgBox("MySQL could not be found")
-	end if
+		objShell.CurrentDirectory = "C:\Program Files\MySQL\MySQL Server 5.5\bin\"
+		strMySQL      = "mysql.exe"
+		strMySQLadmin = "mysqladmin.exe"
+		strMySQLdump  = "mysqldump.exe"
+		strMySQLcheck = "mysqlcheck.exe"
+		MySQLInstall = True
 
+	ElseIf fso.FileExists("C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\mysql.exe") Then
+		objShell.CurrentDirectory = "C:\Program Files (x86)\MySQL\MySQL Server 5.5\bin\"
+		strMySQL      = "mysql.exe"
+		strMySQLadmin = "mysqladmin.exe"
+		strMySQLdump  = "mysqldump.exe"
+		strMySQLcheck = "mysqlcheck.exe"
+		MySQLInstall = True
+	Else
+		strMySQL      = "echo"
+		strMySQLadmin = "echo"
+		strMySQLdump  = "echo"
+		strMySQLcheck = "echo"
+		document.getElementById("start").disabled=true
+		MsgBox "MySQL could not be found", , "Error!"
+	End If
+
+	'-----------------------------------------------------------------------------------------
+	'' strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
+	strPassword = "gap"
+	'-----------------------------------------------------------------------------------------
 
 	setTimeout "CheckUpdate", 100, "VBScript"
 	setTimeout "Download", 200, "VBScript"
@@ -227,6 +243,18 @@ Sub Start
 		lnk.Save
 		'Clean up 
 		Set lnk = Nothing
+		
+		Set objFile2 = fso.CreateTextFile(strTools)
+		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION;" & _
+				  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
+				  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
+				  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
+		objFile2.WriteLine strLine
+		objFile2.Close
+
+		objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & DQ(strTools), 0, True
+			
+		
 		MsgBox("ezi-pos not installed, Please install latest version of ezi-pos...")
     End If
 
@@ -403,6 +431,21 @@ Function TextFromHTML( myURL )
     Set objHTTP = Nothing
     On Error Goto 0
 End Function
+
+'-----------------------------------------------------------------------------------------
+'Name  : DQ   -> Place double quotes around a string and replace double quotes
+'   :    -> within the string with pairs of double quotes.
+'Parameters : stringValue -> String value to be double quoted
+'Return  : DQ   -> Double quoted string.
+'-----------------------------------------------------------------------------------------
+Function DQ(ByVal stringValue)
+ If stringValue <> "" Then
+  DQ = """" & Replace(stringValue, """", """""") & """"
+ Else
+  DQ = """"""
+ End If
+End Function
+'-----------------------------------------------------------------------------------------
 
 </script>
  <script language="javascript">
