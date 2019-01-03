@@ -252,9 +252,8 @@ Sub Start
 		objFile2.WriteLine strLine
 		objFile2.Close
 
-		objShell.Run "cmd /c " & strMySQL & " -u root -proot -h " & Host_IP.Value & " < " & DQ(strTools), 0, True
+		objShell.Run "cmd /c " & strMySQL & " -u root -proot < " & DQ(strTools), 0, True
 			
-		
 		MsgBox("ezi-pos not installed, Please install latest version of ezi-pos...")
     End If
 
