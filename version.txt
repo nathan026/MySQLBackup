@@ -1,6 +1,9 @@
-2018.11.26
+2019.01.03
 
 ### Changes ###
+2019-01-03
+ +Add Password
+
 2018-11-26
  +Adjust cleanup queries to remove stuck price change campaigns
  
