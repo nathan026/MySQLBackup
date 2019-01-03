@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2018.11.26" />
+  VERSION="2019.01.03" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -169,12 +169,12 @@ Sub Window_OnLoad
 
 	setTimeout "CheckUpdate", 100, "VBScript"
 	
-	'-----------------------------------------------------------------------------------------
-	'' strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
-	strPassword = "gap"
-	'-----------------------------------------------------------------------------------------
-	
+	call Password()
 	call CheckMySQL1()
+End Sub
+
+Sub Password
+	 strPassword = InputBox("Enter Password", MySQLBackup.applicationName, "")
 End Sub
 
 Sub CheckMySQL1
@@ -193,8 +193,8 @@ Sub CheckMySQL1
 				DB1Check.innerhtml = "OK"
 				DB1Check.style.color = "LightBlue"
 			Else
-				DB1Check.innerhtml = "??"
-				DB1Check.style.color = "Orange"
+				DB1Check.innerhtml = "FAIL"
+				DB1Check.style.color = "RED"
 			End If
 End Sub
 
@@ -214,8 +214,8 @@ Sub CheckMySQL2
 				DB2Check.innerhtml = "OK"
 				DB2Check.style.color = "LightBlue"
 			Else
-				DB2Check.innerhtml = "??"
-				DB2Check.style.color = "Orange"
+				DB2Check.innerhtml = "FAIL"
+				DB2Check.style.color = "RED"
 			End If
 End Sub
 
@@ -223,8 +223,8 @@ Sub start
 	Blanket_Div.style.visibility="visible"
 	
 	Set objFile = fso.CreateTextFile(strSQLUser)
-		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
-				  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
+		strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION; FLUSH PRIVILEGES;" & _
+				  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
 				  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
 				  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;" & _
 				  " CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
@@ -415,8 +415,8 @@ Sub Tools
 		Select Case result
 		Case vbYes
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION;" & _
-					  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY 'gap'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
+			strLine = "GRANT USAGE ON *.* TO 'gap'@'localhost' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'localhost' WITH GRANT OPTION;" & _
+					  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
 					  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
 					  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;"
 			objFile2.WriteLine strLine
