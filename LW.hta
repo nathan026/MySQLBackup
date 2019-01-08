@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.01.03" />
+  VERSION="2019.01.08" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -63,8 +63,9 @@ set http_obj 			= CreateObject("Microsoft.XMLHTTP")
 set stream_obj 			= CreateObject("ADODB.Stream")
 
 strSQLUser = tfolder & "\sqluser"
+strTools   = tfolder & "\sqlTools"
 strSQLFile = tfolder & "\mysqldump.sql"
-strBackup = tfolder & "\MySQL_Backup"
+strBackup  = tfolder & "\MySQL_Backup"
 
 
 Sub Window_OnLoad
