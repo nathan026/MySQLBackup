@@ -16,7 +16,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.01.08" />
+  VERSION="2019.01.09" />
  </head>
  <!--  https://github.com/nathan026/MySQLBackup -->
 
@@ -149,7 +149,7 @@ Sub Window_OnLoad
 	'-----------------------------------------------------------------------------------------
 
 	setTimeout "CheckUpdate", 100, "VBScript"
-	setTimeout "Download", 200, "VBScript"
+
 End Sub
 
 
@@ -399,6 +399,7 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 			Self.Close()
 			Blanket_Div.style.visibility="hidden"
 		End If
+		setTimeout "Download", 500, "VBScript"
 End Sub
 
 Sub Download ''DOWNLOAD DBBackup UPDATE
