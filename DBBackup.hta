@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.01.03" />
+  VERSION="2019.03.06" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -56,6 +56,7 @@ div.Blanket_Div {
 
 div.UpdateBar_Div {
 	visibility: hidden;
+	z-index:9998;
 	background: #ffcc66;
 	color: Black;
 	font-size: 20px;
@@ -95,7 +96,16 @@ div.Version_Div {
 	text-align:right;
 	width:50%;
 	}
-	
+
+div.Diag_Div {
+	visibility: hidden;
+	background-color:#1a1a1a;
+	color:#9f9f9f;
+	top:1%;
+	right:1%;
+	position:absolute;
+	text-align:right;
+	}
 </style>
  
 <script language="VBScript">
@@ -726,6 +736,22 @@ Sub Tools
 			End Select
 		End If
 	End If
+	
+	IF tools99.selectedIndex = 10 Then  '' Fix Images with strange characters
+		result = MsgBox("This will DELETE Images from database with strange characters which stop replication" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Fix Images")
+
+		Select Case result
+		Case vbYes
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = 	"DELETE FROM image WHERE imagename LIKE '%\'%' and imageid>0;" & _
+						" UPDATE image SET updated=NOW();"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
+			MsgBox "Fix Images Complete", , "Complete!"
+		Case vbNo
+		End Select
+	End If
 
 	If safetybackup.Checked then	'' Safety Backup Checked? Show Backup...
 		UAC.Open strBackup
@@ -959,6 +985,7 @@ function Repair(){
 				<option value="13">13. Update Store Name & Address</option>
 				<option value="14">14. List Database Table Sizes</option>
 				<option value="15">15. Delete Duplicate Sale</option>
+				<option value="16">16. Fix Images</option>
 			</select>
 
 		<br>
@@ -979,6 +1006,10 @@ function Repair(){
 		<br>
 		<a id="Checking" style="font-size:11px; text-align:right; color:#0099ff">checking version... </a><a style="font-size:11px;" ondblclick="VersionDetail">Ver: <SPAN ID="AppVersion" style="font-size:11px;">0</SPAN></a>
 	</div>
-
+	
+	<div id="Diag_Div" class="Diag_Div">
+		<input type="button" id="start" name="Start" value="Disgnostics" style="font-size:20px; border:2px solid Black; color:white; background-color:#329f50;" onClick="">
+	</div>
+	
  </body>
  </html>
