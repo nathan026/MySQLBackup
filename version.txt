@@ -1,6 +1,9 @@
-2019.01.03
+2019.03.06
 
 ### Changes ###
+2019-03-06
+ +Add Fix Image option to tools
+
 2019-01-03
  +Add Password
 
