@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.03.06" />
+  VERSION="2019.03.07" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -737,7 +737,7 @@ Sub Tools
 		End If
 	End If
 	
-	IF tools99.selectedIndex = 10 Then  '' Fix Images with strange characters
+	IF tools99.selectedIndex = 15 Then  '' Fix Images with strange characters
 		result = MsgBox("This will DELETE Images from database with strange characters which stop replication" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Fix Images")
 
 		Select Case result
