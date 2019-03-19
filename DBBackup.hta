@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.03.07" />
+  VERSION="2019.03.19" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -608,6 +608,7 @@ Sub Tools
 			strLine = 	"SET FOREIGN_KEY_CHECKS = 0;" & _
 						" TRUNCATE TABLE plu;" & _
 						" TRUNCATE TABLE plulocation;" & _
+						" TRUNCATE TABLE pluapn;" & _
 						" TRUNCATE TABLE nutrifacts;" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
