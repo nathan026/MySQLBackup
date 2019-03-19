@@ -1,6 +1,9 @@
-2019.03.07
+2019.03.19
 
 ### Changes ###
+2019-03-19
+ +Add pluapn table to delete all products function
+
 2019-03-06
  +Add Fix Image option to tools
 
@@ -9,7 +12,7 @@
 
 2018-11-26
  +Adjust cleanup queries to remove stuck price change campaigns
- 
+
 2018-10-26
  +Add more cleanup queries
 
@@ -19,7 +22,7 @@
 
 2018-10-08
  +Add cleanup old price changes to cleanup old data option
- 
+
 2018-10-03
  +Add "List Database Table Size" option to tools
  +Add another table to be cleaned up
@@ -29,7 +32,7 @@
 
 2018-08-07
  +Better DeliOrder Cleanup
- 
+
 2018-07-12
  +Better Dealcost Cleanup
  +Fix Flush Hosts command
