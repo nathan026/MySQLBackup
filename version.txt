@@ -1,6 +1,9 @@
-2019.03.19
+2019.04.11
 
 ### Changes ###
+2019-04-11
+ +Begin adding Diagnostics
+
 2019-03-19
  +Add pluapn table to delete all products function
 
