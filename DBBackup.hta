@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.03.19" />
+  VERSION="2019.04.11" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -67,6 +67,19 @@ div.UpdateBar_Div {
 	height: 30px;
 }
 
+div.Diag_Div {
+	visibility: hidden;
+	z-index:9997;
+	background: White;
+	color: Black;
+	font-size: 20px;
+	top: 0px;
+	text-align: center;
+	position: absolute;
+	width: 100%;
+	height: 30px;
+	}
+
 div.Header_Div {
 	height:10%;
 	background-color:#329f50;
@@ -97,15 +110,6 @@ div.Version_Div {
 	width:50%;
 	}
 
-div.Diag_Div {
-	visibility: hidden;
-	background-color:#1a1a1a;
-	color:#9f9f9f;
-	top:1%;
-	right:1%;
-	position:absolute;
-	text-align:right;
-	}
 </style>
  
 <script language="VBScript">
@@ -125,13 +129,21 @@ Set tfolder 			= fso.GetSpecialFolder(TemporaryFolder)
 set http_obj 			= CreateObject("Microsoft.XMLHTTP")
 set stream_obj 			= CreateObject("ADODB.Stream")
 
-strSQLUser     = tfolder & "\sqluser"
-strTools       = tfolder & "\sqlTools"
-strSQLFile     = tfolder & "\mysqldump.sql"
-strBackup      = tfolder & "\MySQL_Backup"
-strAppVer      = MySQLBackup.Version
-strHTA         = Self.location.pathname
-strCommandLine = MySQLBackup.CommandLine
+strSQLUser      = tfolder & "\sqluser"
+strTools        = tfolder & "\sqlTools"
+strSQLFile      = tfolder & "\mysqldump.sql"
+strBackup       = tfolder & "\MySQL_Backup"
+strAppVer       = MySQLBackup.Version
+strHTA          = Self.location.pathname
+strCommandLine  = MySQLBackup.CommandLine
+MySQLstate 	    = "False"
+ConnectorState  = "False"
+DotNetState     = "Flase"
+StoreNameState1 = "No Store Details Available"
+eziscaleState   = ""
+eziscale45State = ""
+eziposState     = ""
+objFileSerial   = ""
 
 
 Const TemporaryFolder = 2
@@ -180,6 +192,7 @@ Sub Window_OnLoad
 	setTimeout "CheckUpdate", 100, "VBScript"
 	
 	call Password()
+	call ComponenetCheck()
 	call CheckMySQL1()
 End Sub
 
@@ -761,17 +774,29 @@ Sub Tools
 	Blanket_Div.style.visibility="Hidden"
 End Sub
 
+
 Sub VersionDetail
 Blanket_Div.style.visibility="Visible"
-MySQLstate = "False"
-ConnectorState = "False"
-DotNetState = "Flase"
-StoreNameState1 = "No Store Details Available"
-eziscaleState = ""
-eziscale45State = ""
-eziposState = ""
-objFileSerial = ""
 
+call ComponenetCheck()
+	''Results
+	Msgbox	StoreNameState1  & vbCrLf &_
+			"MySQL 5.5:       " & MySQLstate & vbCrLf &_
+			"Connector 6.3.9: " & ConnectorState & vbCrLf &_
+			"DotNet 4.5:      " & DotNetState & vbCrLf &_
+			"ezi-scale:       " & eziscaleState & vbCrLf &_
+			"ezi-scale45:     " & eziscale45State & vbCrLf &_
+			"ezi-pos:         " & eziposState & vbCrLf &_
+			"SerialNo:        " & SerialState & vbCrLf &_
+			":: Alternative Store Name ::" & vbCrLf &_
+			StoreNameState2 & vbCrLf & vbCrLf &_
+			"CSV" & vbCrLf & date & "," & time & "," & StoreNameState1 & "," & MySQLstate & "," & ConnectorState & "," & DotNetState &_
+			"," & eziscaleState & "," & eziscale45State & "," & eziposState & "," & SerialState & "," & StoreNameState2
+			
+Blanket_Div.style.visibility="Hidden"
+End Sub
+
+sub ComponenetCheck
 	''MySQL Check
 	On Error Resume Next
 	MySQLstate = objWMIService.Get("Win32_Service.Name='MySQL55'").State
@@ -788,7 +813,7 @@ objFileSerial = ""
 	For Each subkey In arrSubKeys
 		keyname = ""
 		keyname = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey & "\DisplayName")
-		If keyname = "MySQL Connector Net 6.9.8" then
+		If keyname = "MySQL Connector Net 6.3.9" then
 			ConnectorState = "True"
 		End If
 	Next
@@ -845,22 +870,12 @@ objFileSerial = ""
 		SerialState = objFileSerial.readAll()	
 	On Error Goto 0
 	
-	''Results
-	Msgbox	StoreNameState1  & vbCrLf &_
-			"MySQL 5.5:       " & MySQLstate & vbCrLf &_
-			"Connector 6.3.9: " & ConnectorState & vbCrLf &_
-			"DotNet 4.5:      " & DotNetState & vbCrLf &_
-			"ezi-scale:       " & eziscaleState & vbCrLf &_
-			"ezi-scale45:     " & eziscale45State & vbCrLf &_
-			"ezi-pos:         " & eziposState & vbCrLf &_
-			"SerialNo:        " & SerialState & vbCrLf &_
-			":: Alternative Store Name ::" & vbCrLf &_
-			StoreNameState2 & vbCrLf & vbCrLf &_
-			"CSV" & vbCrLf & date & "," & time & "," & StoreNameState1 & "," & MySQLstate & "," & ConnectorState & "," & DotNetState &_
-			"," & eziscaleState & "," & eziscale45State & "," & eziposState & "," & SerialState & "," & StoreNameState2
-			
-Blanket_Div.style.visibility="Hidden"
-End Sub
+	 if ConnectorState = "False" Then
+			Message.InnerHTML = "ALERT: MySQL Connector Error"
+			Diag_Div.style.visibility="Visible"
+	end if
+	
+end sub
 
 Sub CMD
 			objShell.Run "cmd /K " & strMySQL & " -h " & Host_IP.Value & " --user=gap -p" & strPassword & "  " & Host_DB.Value, 1, False
@@ -917,6 +932,10 @@ function Repair(){
 	<div id="UpdateBar_Div" class="UpdateBar_Div" >
 		<a id="Update" onClick="Download">Click here to get the latest version!</a>
 		<a id="HideUpdate" style="font-size:12px;" onClick="UpdateNotificationHidden()">(Hide this)</a>
+	</div>
+	
+	<div id="Diag_Div" class="Diag_Div" >
+		<a id="Update" onClick="Download"><Span id="Message">This is a message</span></a>
 	</div>
 
 	<div id="Header_Div" class="Header_Div">	
@@ -1006,10 +1025,6 @@ function Repair(){
 		<a id="Help" style="font-size:18px; color:orange;" onClick="Help">Help!</a>
 		<br>
 		<a id="Checking" style="font-size:11px; text-align:right; color:#0099ff">checking version... </a><a style="font-size:11px;" ondblclick="VersionDetail">Ver: <SPAN ID="AppVersion" style="font-size:11px;">0</SPAN></a>
-	</div>
-	
-	<div id="Diag_Div" class="Diag_Div">
-		<input type="button" id="start" name="Start" value="Disgnostics" style="font-size:20px; border:2px solid Black; color:white; background-color:#329f50;" onClick="">
 	</div>
 	
  </body>
