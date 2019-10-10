@@ -1,6 +1,9 @@
-2019.04.30
+2019.10.10
 
 ### Changes ###
+2019-10-10
+ +Add fix for LastManualUpdate field in cleanup
+
 2019-04-29
  +Fix Send to Scale function
 
