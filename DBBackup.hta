@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.04.30" />
+  VERSION="2019.10.10" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -667,6 +667,7 @@ Sub Tools
 						" DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
 						" DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
 						" DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
+						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate=0;" & _
 						" DELETE  d.*, h.* FROM deliorderdetail d" & _
 							" LEFT JOIN deliorderheader h ON d.headerid=h.id" & _
 							" WHERE h.created<(CURDATE() - INTERVAL 14 DAY)" & _
