@@ -1,6 +1,9 @@
-2019.10.10
+2019.10.14
 
 ### Changes ###
+2019-10-14
+ +Add max_allowed_packet to restore command
+
 2019-10-10
  +Add fix for LastManualUpdate field in cleanup
 
