@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.10.10" />
+  VERSION="2019.10.14" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -252,7 +252,9 @@ Sub start
 				  " GRANT USAGE ON *.* TO 'gap'@'%' IDENTIFIED BY '" & strPassword & "'; GRANT ALL PRIVILEGES ON *.* TO 'gap'@'%' WITH GRANT OPTION;" & _
 				  " GRANT USAGE ON *.* TO 'gappde'@'localhost' IDENTIFIED BY 'gappde'; GRANT ALL PRIVILEGES ON *.* TO 'gappde'@'localhost' WITH GRANT OPTION;" & _
 				  " SET PASSWORD FOR 'gappde'@'localhost' = OLD_PASSWORD('gappde'); FLUSH PRIVILEGES;" & _
-				  " CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; "
+				  " CREATE DATABASE IF NOT EXISTS " & Target_DB.Value & "; " & _
+				  " SET GLOBAL max_allowed_packet=1073741824;"
+
 	objFile.WriteLine strLine
 	objFile.Close
 
@@ -282,6 +284,7 @@ Sub start
 		If fLocation.Value ="" Then
 			MsgBox "No File Selected!", , "Error!"
 		Else
+			objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " -e """ " & DQ(strSQLUser), 0, True
 			objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & DQ(strSQLUser), 0, True
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & DQ(fLocation.Value), 0, True
 			MsgBox "Restore Complete!", , "Complete!"
