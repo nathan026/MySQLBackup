@@ -284,7 +284,6 @@ Sub start
 		If fLocation.Value ="" Then
 			MsgBox "No File Selected!", , "Error!"
 		Else
-			objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " -e """ " & DQ(strSQLUser), 0, True
 			objShell.Run "cmd /C " & strMySQL & " --user=root -proot -h " & Target_IP.Value & " < " & DQ(strSQLUser), 0, True
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -h " & Target_IP.Value & " --database=" & Target_DB.Value & " < " & DQ(fLocation.Value), 0, True
 			MsgBox "Restore Complete!", , "Complete!"
