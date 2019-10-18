@@ -1,6 +1,9 @@
-2019.10.18
+2019.10.19
 
 ### Changes ###
+2019-10-19
+ +Add checkout form cleanup to the Cleanup Old Data tool
+
 2019-10-14
  +Add max_allowed_packet to restore command
 
