@@ -634,7 +634,17 @@ Sub Tools
 	End If
 
 	IF tools99.selectedIndex = 10 Then  '' Cleanup Old Data
-		result = MsgBox("This will DELETE dealcosts and campaigns which ended more than 1 month ago from database" & vbCrLf  & vbCrLf & "Do you want to continue?", vbYesNo, "Cleanup Old Data")
+		result = MsgBox("This will perform the following functions:" & vbCrLf & _
+						"- DELETE dealcosts & campaigns which ended more than 1 month ago." & vbCrLf & _
+						"- DELETE stuck Price Change Campaigns which have been accepted." & vbCrLf & _
+						"- DELETE Unlinked Checkout Buttons and Forms" & vbCrLf & _
+						"- DELETE unlinked Multi APNs" & vbCrLf & _
+						"- DELETE old scale label records" & vbCrLf & _
+						"- DELETE Quickticket records older than 14 days" & vbCrLf & _
+						"- TRUNCATE plu price history table" & vbCrLf & _
+						"- Fix LastUpdate & LastManualUpdate fields on plu record" & vbCrLf & _
+						" " & vbCrLf & _
+						 vbCrLf & vbCrLf & "Do you want to continue?", vbYesNo, "Cleanup Old Data")
 
 		Select Case result
 		Case vbYes
@@ -666,16 +676,9 @@ Sub Tools
 							" WHERE c1.campaignid IS NOT null" & _
 							" AND c.startdate<(CURDATE() - INTERVAL 1 DAY);" & _
 						" DELETE cb.* FROM checkoutbutton cb LEFT JOIN checkoutform cf ON cf.id=cb.checkoutformid WHERE cf.id IS NULL;" & _
+						" DELETE cp.* FROM checkoutpanel cp LEFT JOIN checkoutform cf ON cf.id=cp.checkoutformid WHERE cf.id IS NULL;" & _
 						" DELETE pluapn.* FROM pluapn LEFT JOIN plu ON plu.g_uid=pluapn.plug_uid WHERE plu.g_uid IS NULL;" & _
 						" DELETE FROM prepack WHERE packedon<(CURDATE() - INTERVAL 1 YEAR);" & _
-						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-02 00:00:01';" & _
-						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-02 00:00:01';" & _
-						" DELETE b.* FROM checkoutbutton b" & _
-						" LEFT JOIN checkoutform f ON f.id=b.checkoutformid" & _
-						" WHERE f.id IS null;" & _
-						" DELETE b.* FROM checkoutpanel p" & _
-						" LEFT JOIN checkoutform f ON f.id=p.checkoutformid" & _
-						" WHERE f.id IS null;" & _
 						" DELETE  d.*, h.* FROM deliorderdetail d" & _
 							" LEFT JOIN deliorderheader h ON d.headerid=h.id" & _
 							" WHERE h.created<(CURDATE() - INTERVAL 14 DAY)" & _
@@ -683,6 +686,8 @@ Sub Tools
 						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;" & _
 						" TRUNCATE TABLE plupricehistory;" & _
+						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-02 00:00:01';" & _
+						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-02 00:00:01';" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
