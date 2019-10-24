@@ -1,7 +1,7 @@
 <html>
-
 <title>MySQL Backup | GaP Solutions Pty. Ltd.</title>
 <head>
+<!-- <meta http-equiv="x-ua-compatible" content="ie=9"> -->
 <HTA:APPLICATION
   ID="MySQLBackup"
   BORDER="thin"
@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.10.19" />
+  VERSION="2019.10.24" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -666,7 +666,7 @@ Sub Tools
 							" WHERE c.EndDate<(CURDATE() - INTERVAL 1 MONTH) AND cpsa.id IS NULL;" & _
 						" UPDATE campaign SET active=0, updated=now() WHERE campaigntype=0 AND active=1;" & _
 						" DELETE FROM campaign WHERE active=0 AND Updated<(CURDATE() - INTERVAL 1 MONTH) AND campaigntype=0;" & _
-						" UPDARE campaign c" & _
+						" UPDATE campaign c" & _
 							" LEFT JOIN (" & _
 							" SELECT cpsa.campaignid FROM campaignplustoreacceptance cpsa" & _
 							" LEFT JOIN campaignplu cp ON cp.campaignid=cpsa.campaignid AND cp.plug_uid=cpsa.plug_uid" & _
@@ -686,7 +686,7 @@ Sub Tools
 						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;" & _
 						" TRUNCATE TABLE plupricehistory;" & _
-						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-02 00:00:01';" & _
+						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'1999-12-01 00:00:01';" & _
 						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-02 00:00:01';" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
