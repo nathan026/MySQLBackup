@@ -686,8 +686,8 @@ Sub Tools
 						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;" & _
 						" TRUNCATE TABLE plupricehistory;" & _
-						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'1999-12-01 00:00:01';" & _
-						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-02 00:00:01';" & _
+						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-01 00:00:01';" & _
+						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-01 00:00:01';" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
