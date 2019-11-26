@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.10.24" />
+  VERSION="2019.11.26" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -687,7 +687,7 @@ Sub Tools
 						" TRUNCATE TABLE deliorderdetail_h;" & _
 						" TRUNCATE TABLE plupricehistory;" & _
 						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-01 00:00:01';" & _
-						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'2000-01-01 00:00:01';" & _
+						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'1999-01-01 00:00:01';" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
@@ -827,6 +827,19 @@ sub ComponenetCheck
 	For Each subkey In arrSubKeys
 		keyname = ""
 		keyname = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey & "\DisplayName")
+		If keyname = "MySQL Connector Net 6.3.9" then
+			ConnectorState = "True"
+		End If
+	Next
+	On Error Goto 0
+	
+	strKeyPath = "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+	oReg.EnumKey HKEY_LOCAL_MACHINE, strKeyPath, arrSubKeys
+	
+	On Error Resume Next
+	For Each subkey In arrSubKeys
+		keyname = ""
+		keyname = objShell.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" & subkey & "\DisplayName")
 		If keyname = "MySQL Connector Net 6.3.9" then
 			ConnectorState = "True"
 		End If
