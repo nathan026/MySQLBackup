@@ -1,6 +1,10 @@
-2019.11.26
+2019.12.09
 
 ### Changes ###
+2019-12-09
+ +Add EMC Speed Test link
+ +Add Product Status check (Option 17.)
+
 2019-10-19
  +Add checkout form cleanup to the Cleanup Old Data tool
 
