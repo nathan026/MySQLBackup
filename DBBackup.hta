@@ -108,6 +108,16 @@ div.Version_Div {
 	text-align:right;
 	width:50%;
 	}
+	
+div.SpeedTest_Div {
+	font-weight: bold;
+	top:0px;
+	height:8%;
+	right:0px;
+	position:absolute;
+	text-align:center;
+	width:10%;
+}
 
 </style>
  
@@ -159,7 +169,7 @@ Sub Window_OnLoad
 
 	On Error Resume Next
 	For each objitem in colIP
-		IP.innerHTML = Join(objitem.IPAddress, " . . . . . . ")
+		IP.innerHTML = Join(objitem.IPAddress, " . . . . ")
 		Exit For
 	Next
 	On Error Goto 0
@@ -332,6 +342,10 @@ Sub Help
 	End Select
 
 	Blanket_Div.style.visibility="Hidden"
+End Sub
+
+Sub SpeedTest
+	objShell.run("https://webreports.gapsolutions.com.au/speedtest/")
 End Sub
 
 Sub Download ''DOWNLOAD UPDATE
@@ -1000,6 +1014,9 @@ function Repair(){
 		<br>
 		<span id="IP">NO NETWORK DETECTED</span>
 		<br>
+	</div>
+	<div id="SpeedTest_Div" class="SpeedTest_Div">
+		<a id="SpeedTest" style="font-size:11px; color:black"onClick="SpeedTest">EMC<br>Speed<br>Test</a>
 	</div>
 	<p>
 
