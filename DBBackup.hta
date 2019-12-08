@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.11.26" />
+  VERSION="2019.12.09" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -780,6 +780,36 @@ Sub Tools
 		Case vbNo
 		End Select
 	End If
+	
+	IF tools99.selectedIndex = 16 Then  '' Check Product Status
+		strCheckAPN = InputBox("Enter APN number", "enter value", 9300624005377)
+			
+			IF Not strCheckAPN="" Then
+				Set objFile2 = fso.CreateTextFile(strTools)
+				objFile2.WriteLine 	"SELECT p.storeid, p.apn, p.plu, p.Name, p.price/100 as 'Sell $', p.gstpercent as 'Sell GST', p.cost / POW(10,p.costdecimals) as 'Cost $', p.costgstpercent as 'Cost GST', LastManualUpdate, LastUpdate," & _
+									" (( (p.price/((p.gstpercent/100)+1) /100) - (p.cost/((p.costgstpercent/100)+1) / POW(10, p.CostDecimals)) )/ (p.price/((p.gstpercent/100)+1) /100) ) *100 as 'GP %'," & _
+									" p.Active, p.deleted as 'PLU Deleted', '' as 'Multi Deleted'" & _
+									" from plu p where p.apn='" & strCheckAPN & "'" & _
+									" UNION" & _
+									" SELECT p.storeid, pa.apn, p.plu, p.name,p.price/100 as 'Sell $', p.gstpercent as 'Sell GST', p.cost / POW(10,p.costdecimals) as 'Cost $', p.costgstpercent as 'Cost GST', '', Updated," & _
+									" (( (p.price/((p.gstpercent/100)+1) /100) - (p.cost/((p.costgstpercent/100)+1) / POW(10, p.CostDecimals)) )/ (p.price/((p.gstpercent/100)+1) /100) ) *100 as 'GP %'," & _
+									" p.active, p.deleted, ''" & _
+									" from pluapn pa " & _
+									" Left Join plu p on p.g_uid=pa.plug_uid" & _
+									" where pa.apn='" & strCheckAPN & "'" & _
+									" order by storeid, lastmanualupdate desc "
+				
+				objFile2.Close
+				
+				objShell.Run "cmd /C echo -- ## Product Status for APN: " & strCheckAPN & " ##>" & DQ(strTools & ".Results"), 0, True
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -t -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >>" & DQ(strTools & ".Results"), 0, True
+				
+				objShell.Run "notepad.exe " & DQ(strTools & ".Results"), 1, False
+
+		End If
+	End If
+	
+
 
 	If safetybackup.Checked then	'' Safety Backup Checked? Show Backup...
 		UAC.Open strBackup
@@ -1033,6 +1063,7 @@ function Repair(){
 				<option value="14">14. List Database Table Sizes</option>
 				<option value="15">15. Delete Duplicate Sale</option>
 				<option value="16">16. Fix Images</option>
+				<option value="17">17. Check Product Status</option>
 			</select>
 
 		<br>
