@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.12.09" />
+  VERSION="2019.12.12" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -212,6 +212,7 @@ Sub Password
 End Sub
 
 Sub CheckMySQL1
+IF strPassword = "" Then Exit Sub
 			Dim DNSResult
 			DB1Check.innerhtml = "--"
 			DB1Check.style.color = "Yellow"
@@ -219,6 +220,24 @@ Sub CheckMySQL1
 			On Error Resume Next
 			DNSResult = objShell.run (strMySQL & " --user=gap -p" & strPassword & " -h " & Host_IP.Value & " -e ""select '1';""", 0, True)
 			On Error Goto 0
+			
+			Set objFile2 = fso.CreateTextFile(strTools)
+			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings" & _
+					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
+			objFile2.WriteLine strLine
+			objFile2.Close
+			objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "mastercheck"), 0, True
+
+			Set objMaster = fso.OpenTextFile (strTools & "mastercheck", 1)
+			Do Until objMaster.AtEndOfStream
+			strMaster = objMaster.ReadLine
+			Loop
+
+			IF (strMaster="True") THEN
+				isMaster.innerHTML = "(Master)"
+			ELSE
+				isMaster.innerHTML = ""
+			END IF
 			
 			IF strMySQL = "echo" Then
 				DB1Check.innerhtml = "??"
@@ -233,6 +252,7 @@ Sub CheckMySQL1
 End Sub
 
 Sub CheckMySQL2
+IF strPassword = "" Then Exit Sub
 			Dim DNSResult
 			DB2Check.innerhtml = "--"
 			DB2Check.style.color = "Yellow"
@@ -254,6 +274,7 @@ Sub CheckMySQL2
 End Sub
 
 Sub start
+IF strPassword = "" Then Exit Sub
 	Blanket_Div.style.visibility="visible"
 	
 	Set objFile = fso.CreateTextFile(strSQLUser)
@@ -440,6 +461,7 @@ End Function
 
 ''TOOLS
 Sub Tools
+IF strPassword = "" Then Exit Sub
 	Blanket_Div.style.visibility="visible"
 
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
@@ -802,12 +824,12 @@ Sub Tools
 				Set objFile2 = fso.CreateTextFile(strTools)
 				objFile2.WriteLine 	"SELECT p.storeid, p.apn, p.plu, p.Name, p.price/100 as 'Sell $', p.gstpercent as 'Sell GST', p.cost / POW(10,p.costdecimals) as 'Cost $', p.costgstpercent as 'Cost GST', LastManualUpdate, LastUpdate," & _
 									" (( (p.price/((p.gstpercent/100)+1) /100) - (p.cost/((p.costgstpercent/100)+1) / POW(10, p.CostDecimals)) )/ (p.price/((p.gstpercent/100)+1) /100) ) *100 as 'GP %'," & _
-									" p.Active, p.deleted as 'PLU Deleted', '' as 'Multi Deleted'" & _
+									" p.Active, p.deleted as 'PLU Deleted', '' as 'Multi Deleted', hex(p.g_uid) as GUID" & _
 									" from plu p where p.apn='" & strCheckAPN & "'" & _
 									" UNION" & _
-									" SELECT p.storeid, pa.apn, p.plu, p.name,p.price/100 as 'Sell $', p.gstpercent as 'Sell GST', p.cost / POW(10,p.costdecimals) as 'Cost $', p.costgstpercent as 'Cost GST', '', Updated," & _
+									" SELECT p.storeid, pa.apn, p.plu, p.name,p.price/100 as 'Sell $', p.gstpercent as 'Sell GST', p.cost / POW(10,p.costdecimals) as 'Cost $', p.costgstpercent as 'Cost GST', '(Multi)', Updated," & _
 									" (( (p.price/((p.gstpercent/100)+1) /100) - (p.cost/((p.costgstpercent/100)+1) / POW(10, p.CostDecimals)) )/ (p.price/((p.gstpercent/100)+1) /100) ) *100 as 'GP %'," & _
-									" p.active, p.deleted, ''" & _
+									" p.active, p.deleted, '', hex(pa.plug_uid)" & _
 									" from pluapn pa " & _
 									" Left Join plu p on p.g_uid=pa.plug_uid" & _
 									" where pa.apn='" & strCheckAPN & "'" & _
@@ -916,8 +938,20 @@ sub ComponenetCheck
 	eziposState = fso.GetFileVersion("C:\Program Files (x86)\GaP Solutions Pty Ltd\ezi-pos\ezi-pos.exe")
 	On Error Goto 0
 	
-	''StoreName Check
+	''SerialNo Check
+	On Error Resume Next
+	set objFileSerial = fso.OpenTextFile("c:\serialno.txt",1)
+		SerialState = objFileSerial.readAll()	
+	On Error Goto 0
+	
+	IF ConnectorState = "False" Then
+			Message.InnerHTML = "ALERT: MySQL Connector Error"
+			Diag_Div.style.visibility="Visible"
+	End If
+	
+		''StoreName Check
 	If strMySQL = True Then
+	IF strPassword = "" Then Exit Sub
 		Set objFile2 = fso.CreateTextFile(strTools)
 		strLine = 	"select shortname from store where id=IFNULL((select value from settings where Keyname='StoreID' and Section='General'),0);"
 		objFile2.WriteLine strLine
@@ -933,18 +967,7 @@ sub ComponenetCheck
 		objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "results"), 0, True
 		set objFile3 = fso.OpenTextFile(strTools & "results",1)
 		StoreNameState2 = objFile3.readAll()	
-	end if
-	
-	''SerialNo Check
-	On Error Resume Next
-	set objFileSerial = fso.OpenTextFile("c:\serialno.txt",1)
-		SerialState = objFileSerial.readAll()	
-	On Error Goto 0
-	
-	 if ConnectorState = "False" Then
-			Message.InnerHTML = "ALERT: MySQL Connector Error"
-			Diag_Div.style.visibility="Visible"
-	end if
+	End If
 	
 end sub
 
@@ -1035,6 +1058,7 @@ function Repair(){
 			<h2 align="Left">Host
 			<input type="Button" id="test" value="Test" onClick="CheckMySQL1" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button>
 			<input type="Button" id="CMD" value=" # " onClick="CMD" style="font-size:16px; border:none; color:#e7e7e7; background-color:#555555;"></button>
+			<span name="isMaster" id="isMaster" style="font-size:11px; color:orange;"></span>
 			</h2>
 
 			IP Address: <input type="text" name="Host_IP" value="localhost" size="10">
