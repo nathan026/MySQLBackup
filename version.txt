@@ -1,6 +1,11 @@
-2019.12.09
+2019.12.12
 
 ### Changes ###
+2019-12-12
+ +Add Master indicator to database connection
+ +Add GUID to Product Status check
+ +Prevent memory leak when no password entered
+
 2019-12-09
  +Add EMC Speed Test link
  +Add Product Status check (Option 17.)
