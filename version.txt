@@ -1,6 +1,9 @@
-2019.12.12
+2020.01.20
 
 ### Changes ###
+2020-01-20
+ +Add End Of Day Adjustment (Option 18.)
+
 2019-12-12
  +Add Master indicator to database connection
  +Add GUID to Product Status check
