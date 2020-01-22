@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2019.12.12" />
+  VERSION="2020.01.22" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -845,7 +845,22 @@ IF strPassword = "" Then Exit Sub
 		End If
 	End If
 	
+	IF tools99.selectedIndex = 17 Then  '' Adjust End Of Day Record
+		strHour = InputBox("enter new hour for last end of day record", "enter HOUR value", 0)
+		strDay = InputBox("enter new day of month for last end of day record", "enter DAY value", 0)
+			
 
+				Set objFile2 = fso.CreateTextFile(strTools)
+				objFile2.WriteLine 	"UPDATE endofday SET" & _
+									" started = DATE_ADD( DATE_ADD(started, INTERVAL (" & strHour & " - HOUR(started)) HOUR), INTERVAL (" & strDay & " - DAY(started)) DAY)" & _
+									" ended  = DATE_ADD( DATE_ADD(ended, INTERVAL (" & strHour & " - HOUR(ended)) HOUR), INTERVAL (" & strDay & " - DAY(ended)) DAY)" & _
+									" WHERE id = (SELECT MAX(id) FROM endofday)"
+				
+				objFile2.Close
+				objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
+				MsgBox "Deleting Duplicate Sale", , "Complete!"
+
+	End If
 
 	If safetybackup.Checked then	'' Safety Backup Checked? Show Backup...
 		UAC.Open strBackup
@@ -1105,6 +1120,7 @@ function Repair(){
 				<option value="15">15. Delete Duplicate Sale</option>
 				<option value="16">16. Fix Images</option>
 				<option value="17">17. Check Product Status</option>
+				<option value="18">18. Adjust End Of Day record</option>
 			</select>
 
 		<br>
