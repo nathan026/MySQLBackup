@@ -1,6 +1,9 @@
-2020.01.20
+2020.03.03
 
 ### Changes ###
+2020-03-03
+ +Correct End Of Day Adjustment completion message
+
 2020-01-20
  +Add End Of Day Adjustment (Option 18.)
 
