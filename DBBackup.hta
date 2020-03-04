@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2020.01.22" />
+  VERSION="2020.03.03" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -466,6 +466,7 @@ IF strPassword = "" Then Exit Sub
 
 	If tools99.selectedIndex = 0 Then '' MySQL Check and Repair
 		objShell.Run "cmd /c " & strMySQL & " -u gap -p" & strPassword & " -h " & Host_IP.Value & "-e """"flush hosts;""""", 0, True
+		objShell.Run "cmd /c " & strMySQL & " -u gap -p" & strPassword & " -h " & Host_IP.Value & "-e " & DQ("flush hosts;"), 0, True
 		objShell.Run "cmd /c " & strMySQLcheck & " --user=gap -p" & strPassword & " -h " & Host_IP.Value & " " & Host_DB.Value & " --auto-repair --optimize --force --use-frm >%temp%\MySQLCheck.log", 0, True
 		objShell.Run "notepad.exe %temp%\MySQLCheck.log", 1, False
 		MsgBox "Check and Repair Complete!", , "Complete!"
@@ -722,8 +723,6 @@ IF strPassword = "" Then Exit Sub
 						" TRUNCATE TABLE deliorderheader_h;" & _
 						" TRUNCATE TABLE deliorderdetail_h;" & _
 						" TRUNCATE TABLE plupricehistory;" & _
-						" UPDATE plu SET lastupdate=now() WHERE lastupdate<'2000-01-01 00:00:01';" & _
-						" UPDATE plu SET lastmanualupdate=lastupdate WHERE lastmanualupdate<'1999-01-01 00:00:01';" & _
 						" SET FOREIGN_KEY_CHECKS = 1;"
 			objFile2.WriteLine strLine
 			objFile2.Close
@@ -858,7 +857,7 @@ IF strPassword = "" Then Exit Sub
 				
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
-				MsgBox "Deleting Duplicate Sale", , "Complete!"
+				MsgBox "Adjust End Of Day Record", , "Complete!"
 
 	End If
 
