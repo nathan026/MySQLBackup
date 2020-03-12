@@ -853,7 +853,7 @@ IF strPassword = "" Then Exit Sub
 				objFile2.WriteLine 	"UPDATE endofday SET" & _
 									" started = DATE_ADD( DATE_ADD(started, INTERVAL (" & strHour & " - HOUR(started)) HOUR), INTERVAL (" & strDay & " - DAY(started)) DAY)," & _
 									" ended  = DATE_ADD( DATE_ADD(ended, INTERVAL (" & strHour & " - HOUR(ended)) HOUR), INTERVAL (" & strDay & " - DAY(ended)) DAY)" & _
-									" WHERE id = (SELECT MAX(id) FROM endofday)"
+									" WHERE id = (select * from ((SELECT MAX(id) FROM endofday) as a))"
 				
 				objFile2.Close
 				objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools), 0, True
