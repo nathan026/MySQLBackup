@@ -1,6 +1,12 @@
-2020.03.12
+2020.04.18
 
 ### Changes ###
+2020-04-18
+ +Add warning section
+ +Add warning for MySQL Connector
+ +Add warning for InnoDB Buffer size smaller than 1GB
+ +Add warning for Smallest Denomination Size (should be 5 in Australia)
+
 2020-04-01
  +Make the Connector Error smaller becasue its less importnat now
 
