@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2020.04.01" />
+  VERSION="2020.04.18" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -86,6 +86,14 @@ div.Header_Div {
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 	color: White;
 	overflow: hidden;
+	}
+
+div.Info_Div {
+	background-color: #4a4a4a;
+	test-align: left;
+	left: 0px;
+	bottom: 8%;
+	position: absolute;
 	}
 
 div.Footer_Div {
@@ -223,23 +231,35 @@ IF strPassword = "" Then Exit Sub
 			On Error Goto 0
 			
 			Set objFile2 = fso.CreateTextFile(strTools)
-			strLine = "SELECT value FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings" & _
-					  " WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1;"
+			strLine = 	" select * from (" & _
+						"  SELECT case when value = 'True' then 'MasterTrue' else 'MasterFales' end FROM checkoutsettings WHERE section='General' AND KeyName='Master' AND (StoreID=(SELECT value FROM settings" & _
+						"  WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1) as a" & _
+						" union" & _
+						" SELECT * from (" & _
+						"  SELECT case when value <> '5' then 'SmallestDenominationWarning' else 'SmallestDenomination_5c' end FROM checkoutsettings WHERE section='Sales' AND KeyName='SmallestDenomination' AND Value<>'5' AND (StoreID=(SELECT value FROM settings" & _
+						"  WHERE section='General' AND KeyName='StoreID') OR StoreID=0) ORDER BY StoreID DESC LIMIT 1) as b" & _
+						" union" & _
+						" SELECT case when size<1 THen 'InnoDBSizeWarning' else concat(Round(size, 2), 'GB_innoDB') end from (SELECT @@innodb_buffer_pool_size/1024/1024/1024 as size ) as c;"
+
 			objFile2.WriteLine strLine
 			objFile2.Close
 			objShell.Run "cmd /C " & strMySQL & " --user=gap -p" & strPassword & " -sN -h " & Host_IP.Value & " " & Host_DB.Value & " < " & DQ(strTools) & " >" & DQ(strTools & "mastercheck"), 0, True
 
 			Set objMaster = fso.OpenTextFile (strTools & "mastercheck", 1)
 			Do Until objMaster.AtEndOfStream
-			strMaster = objMaster.ReadLine
+				strMaster = objMaster.ReadLine
+				IF (strMaster="MasterTrue") THEN
+					isMaster.innerHTML = "(Master)"
+				END IF
+				IF (strMaster="SmallestDenominationWarning") THEN
+					isDenomination.innerHTML = "Smallest Denomination Warning"
+				END IF
+				
+				IF (strMaster="InnoDBSizeWarning") THEN
+					isBufferSize.innerHTML = "InnoDB Buffer Size Warning"
+				END IF
 			Loop
 
-			IF (strMaster="True") THEN
-				isMaster.innerHTML = "(Master)"
-			ELSE
-				isMaster.innerHTML = ""
-			END IF
-			
 			IF strMySQL = "echo" Then
 				DB1Check.innerhtml = "??"
 				DB1Check.style.color = "Orange"
@@ -961,7 +981,8 @@ sub ComponenetCheck
 	
 	IF ConnectorState = "False" Then
 			Message.InnerHTML = "ALERT: MySQL Connector Error"
-			Diag_Div.style.visibility="Visible"
+			''isConnector.style.visibility="Visible"
+			isConnector.innerHTML = "MySQL NetConnector Warning"
 	End If
 	
 		''StoreName Check
@@ -1041,10 +1062,6 @@ function Repair(){
 	<div id="UpdateBar_Div" class="UpdateBar_Div" >
 		<a id="Update" onClick="Download">Click here to get the latest version!</a>
 		<a id="HideUpdate" style="font-size:12px;" onClick="UpdateNotificationHidden()">(Hide this)</a>
-	</div>
-	
-	<div id="Diag_Div" class="Diag_Div" >
-		<a id="Update" onClick="Download"><Span id="Message">This is a message</span></a>
 	</div>
 
 	<div id="Header_Div" class="Header_Div">	
@@ -1128,6 +1145,13 @@ function Repair(){
 		</div>
 		<p>
 		<input type="button" id="start" name="Start" value="  Start  " style="font-size:20px; border:none; color:white; background-color:#329f50;" onClick="Start()">
+		
+	</div>
+	
+	<div id="Info_Div" class="Info_Div" >
+		<span name="isDenomination" id="isDenomination" style="font-size:11px; color:orange"></span><br>
+		<span name="isBufferSize" id="isBufferSize" style="font-size:11px; color:orange"></span><br>
+		<span name="isConnector" id="isConnector" style="font-size:11px; color:orange;"></span><br>
 	</div>
 
 	<div id="Footer_Div"  class="Footer_Div">
