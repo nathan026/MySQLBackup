@@ -17,7 +17,7 @@
   SINGLEINSTANCE="no"
   SYSMENU="yes"
   SELECTION="no"
-  VERSION="2020.04.18" />
+  VERSION="2020.04.19" />
 
 
 <!--  https://github.com/nathan026/MySQLBackup -->
@@ -361,7 +361,8 @@ Sub CheckUpdate ''CHECK FOR UPDATES
 
 	Checking.style.visibility="Visible"
 		strCurrentVer = Split( MySQLBackup.Version )(0)
-		strUpdate = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ), 500)
+		strUpdate = LEFT(TextFromHTML( "https://webreports.gapsolutions.com.au/version.txt?noone=" & timer ), 500)
+		''strUpdate = LEFT(TextFromHTML( "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/version.txt?noone=" & timer ), 500)
 		strLatestVer  = LEFT(strUpdate,10)
 		
 		If (Replace(strLatestver,".","") > Replace(strCurrentVer,".","")) Then
@@ -397,7 +398,7 @@ Sub Download ''DOWNLOAD UPDATE
 		msgbox "Need permission to write file...", , "Warning!"
 	End If
 
-		http_obj.open "GET", "https://raw.githubusercontent.com/nathan026/MySQLBackup/master/DBBackup.hta?noonce=" & timer, False
+		http_obj.open "GET", "https://webreports.gapsolutions.com.au/DBBackup.hta?noonce=" & timer, False
 		http_obj.send
 
 		stream_obj.type = 1
